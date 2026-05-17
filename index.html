@@ -581,8 +581,9 @@
         const text = await res.text();
         throw new Error(res.status + ': ' + text);
       }
-      if (res.status === 204) return null;
-      return res.json();
+      if (res.status === 204 || res.status === 201) return null;
+      const text = await res.text();
+      return text ? JSON.parse(text) : null;
     }
 
     function isLive() {
@@ -630,6 +631,7 @@
         await sbFetch('/travelers', {
           method: 'POST',
           body: JSON.stringify({ name }),
+          headers: { 'Prefer': 'return=representation' },
         });
         input.value = '';
         await loadTravelers();
