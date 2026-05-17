@@ -581,6 +581,20 @@
     }
     injectSpinnerStyle();
 
+    // === STATE PERSISTENCE (remembers page across refresh) ===
+    function saveState(state) {
+      localStorage.setItem('travelTrackerState', JSON.stringify(state));
+    }
+    function loadState() {
+      try {
+        const raw = localStorage.getItem('travelTrackerState');
+        return raw ? JSON.parse(raw) : null;
+      } catch { return null; }
+    }
+    function clearState() {
+      localStorage.removeItem('travelTrackerState');
+    }
+
     // === NAVIGATION ===
     function hideAll() {
       [pageLanding, pageTravelerSelect, pageTravelerDash, pageAdmin].forEach(p => p.classList.add('hidden'));
@@ -588,23 +602,27 @@
     function showLanding() {
       hideAll();
       pageLanding.classList.remove('hidden');
+      clearState();
       renderAll();
     }
     function showTravelerSelect() {
       hideAll();
       pageTravelerSelect.classList.remove('hidden');
+      saveState({ page: 'travelerSelect' });
       renderTravelerGrid();
     }
     function showTravelerDash(name) {
       hideAll();
       pageTravelerDash.classList.remove('hidden');
       travelerDashName.textContent = name;
+      saveState({ page: 'travelerDash', travelerName: name });
       renderTravelerDash(name);
     }
     async function showAdmin() {
       hideAll();
       pageAdmin.classList.remove('hidden');
       populateSelects();
+      saveState({ page: 'admin', adminUnlocked: true });
       await loadData();
       renderAdmin();
     }
@@ -917,9 +935,23 @@
     // === INIT ===
     (async () => {
       await loadData();
-      showLanding();
       populateSelects();
       inputDate.value = new Date().toISOString().slice(0, 10);
+
+      const saved = loadState();
+      if (saved) {
+        if (saved.page === 'travelerSelect') {
+          showTravelerSelect();
+        } else if (saved.page === 'travelerDash' && saved.travelerName) {
+          showTravelerDash(saved.travelerName);
+        } else if (saved.page === 'admin' && saved.adminUnlocked) {
+          await showAdmin();
+        } else {
+          showLanding();
+        }
+      } else {
+        showLanding();
+      }
     })();
   </script>
 </body>
