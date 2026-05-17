@@ -573,17 +573,13 @@
     };
 
     async function sbFetch(path, options = {}) {
-      const res = await fetch(SUPABASE_REST + path, {
-        ...options,
-        headers: { ...SB_HEADERS, ...options.headers },
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(res.status + ': ' + text);
-      }
-      if (res.status === 204 || res.status === 201) return null;
+      const url = SUPABASE_REST + path;
+      const headers = { ...SB_HEADERS, ...options.headers };
+      const res = await fetch(url, { ...options, headers });
       const text = await res.text();
-      return text ? JSON.parse(text) : null;
+      if (!res.ok) throw new Error(res.status + ': ' + text);
+      if (!text) return null;
+      try { return JSON.parse(text); } catch { return null; }
     }
 
     function isLive() {
@@ -628,22 +624,21 @@
       if (travelers.includes(name)) { alert('Traveler already exists'); return; }
       input.disabled = true;
       try {
-        await sbFetch('/travelers', {
+        const res = await fetch(SUPABASE_REST + '/travelers', {
           method: 'POST',
+          headers: SB_HEADERS,
           body: JSON.stringify({ name }),
-          headers: { 'Prefer': 'return=representation' },
         });
+        if (!res.ok) {
+          const err = await res.text();
+          if (res.status === 409) { alert('Traveler "' + name + '" already exists!'); return; }
+          throw new Error(res.status + ': ' + err);
+        }
         input.value = '';
         await loadTravelers();
         refreshAdmin();
       } catch (e) {
-        if (e.message.startsWith('409')) {
-          alert('Traveler "' + name + '" already exists!');
-        } else {
-          alert('Failed to add traveler: ' + e.message);
-        }
-        await loadTravelers();
-        refreshAdmin();
+        alert('Failed to add traveler: ' + e.message);
       } finally {
         input.disabled = false;
         input.focus();
