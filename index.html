@@ -637,7 +637,13 @@
         await loadTravelers();
         refreshAdmin();
       } catch (e) {
-        alert('Failed to add traveler: ' + e.message);
+        if (e.message.startsWith('409')) {
+          alert('Traveler "' + name + '" already exists!');
+        } else {
+          alert('Failed to add traveler: ' + e.message);
+        }
+        await loadTravelers();
+        refreshAdmin();
       } finally {
         input.disabled = false;
         input.focus();
