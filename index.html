@@ -479,13 +479,20 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    // ===== CONFIG — replace with your Supabase project details =====
+    const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+    const SUPABASE_ANON_KEY = 'your-anon-key-here';
+    // ================================================================
+
     const TRAVELERS = ['Abid', 'Ashraful', 'Afran', 'Nirob', 'Tushar', 'Forhad'];
     const ADMIN_PASSWORD = 'shagor bagan';
     const COLORS = ['#2ecc71','#1abc9c','#f39c12','#e74c3c','#3498db','#9b59b6'];
 
     let expenses = [];
     let editingId = null;
+    let loading = false;
 
     // DOM
     const $ = id => document.getElementById(id);
@@ -518,16 +525,68 @@
     const passwordError = $('passwordError');
     const passwordSubmit = $('passwordSubmit');
 
-    // === DATA ===
-    function loadData() {
-      try {
-        const raw = localStorage.getItem('travelTrackerData');
-        expenses = raw ? JSON.parse(raw) : [];
-      } catch { expenses = []; }
+    // === SUPABASE CLIENT ===
+    let supabase;
+    try {
+      supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (e) {
+      console.warn('Supabase not configured. Falling back to localStorage.');
+      supabase = null;
     }
-    function saveData() {
+
+    function isSupabaseReady() {
+      return supabase && SUPABASE_URL.includes('YOUR_PROJECT') === false;
+    }
+
+    // === DATA ===
+    async function loadData() {
+      if (isSupabaseReady()) {
+        try {
+          loading = true;
+          const { data, error } = await supabase
+            .from('expenses')
+            .select('*')
+            .order('date', { ascending: false });
+          if (error) throw error;
+          expenses = data || [];
+        } catch (e) {
+          console.error('Failed to load from Supabase:', e);
+          expenses = [];
+        } finally {
+          loading = false;
+        }
+      } else {
+        try {
+          const raw = localStorage.getItem('travelTrackerData');
+          expenses = raw ? JSON.parse(raw) : [];
+        } catch { expenses = []; }
+      }
+      renderAll();
+    }
+
+    async function saveData() {
+      if (isSupabaseReady()) {
+        // saves happen per-operation (add/update/delete)
+        return;
+      }
       localStorage.setItem('travelTrackerData', JSON.stringify(expenses));
     }
+
+    // === LOADING SPINNER ===
+    function showLoading(container) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="icon" style="animation: spin 1s linear infinite">&#x1F504;</div>
+          <p>Loading...</p>
+        </div>
+      `;
+    }
+    function injectSpinnerStyle() {
+      const style = document.createElement('style');
+      style.textContent = `@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`;
+      document.head.appendChild(style);
+    }
+    injectSpinnerStyle();
 
     // === NAVIGATION ===
     function hideAll() {
@@ -549,10 +608,11 @@
       travelerDashName.textContent = name;
       renderTravelerDash(name);
     }
-    function showAdmin() {
+    async function showAdmin() {
       hideAll();
       pageAdmin.classList.remove('hidden');
       populateSelects();
+      await loadData();
       renderAdmin();
     }
     function showAdminLogin() {
@@ -563,10 +623,10 @@
     }
 
     // === PASSWORD ===
-    function unlockAdmin() {
+    async function unlockAdmin() {
       if (passwordInput.value === ADMIN_PASSWORD) {
         passwordModal.classList.remove('open');
-        showAdmin();
+        await showAdmin();
       } else {
         passwordError.style.display = 'block';
         passwordInput.value = '';
@@ -700,41 +760,90 @@
       if (!pageAdmin.classList.contains('hidden')) renderAdmin();
     }
 
-    // === CRUD ===
-    function addExpense(name, amount, payer, assigned, category, date) {
+    // === CRUD (Supabase + localStorage fallback) ===
+    async function addExpense(name, amount, payer, assigned, category, date) {
       const expense = {
-        id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2),
         name: name.trim(),
         amount: parseFloat(amount),
-        payer: payer,
-        assigned: assigned,
+        payer,
+        assigned,
         category: category.trim() || 'General',
         date: date || new Date().toISOString().slice(0, 10),
-        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
       };
-      expenses.push(expense);
-      saveData();
+
+      if (isSupabaseReady()) {
+        adminSubmitBtn.disabled = true;
+        adminSubmitBtn.textContent = 'Saving...';
+        try {
+          const { data, error } = await supabase
+            .from('expenses')
+            .insert(expense)
+            .select();
+          if (error) throw error;
+          if (data) expenses.unshift(data[0]);
+        } catch (e) {
+          alert('Failed to save: ' + e.message);
+          return;
+        } finally {
+          adminSubmitBtn.disabled = false;
+        }
+      } else {
+        expense.id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+        expense.created_at = expense.created_at || new Date().toISOString();
+        expenses.push(expense);
+        saveData();
+      }
       renderAdmin();
     }
 
-    function updateExpense(id, name, amount, payer, assigned, category, date) {
-      const idx = expenses.findIndex(e => e.id === id);
-      if (idx === -1) return;
-      expenses[idx] = {
-        ...expenses[idx],
-        name: name.trim(),
-        amount: parseFloat(amount),
-        payer: payer,
-        assigned: assigned,
-        category: category.trim() || 'General',
-        date: date || expenses[idx].date,
-      };
-      saveData();
+    async function updateExpense(id, name, amount, payer, assigned, category, date) {
+      if (isSupabaseReady()) {
+        adminSubmitBtn.disabled = true;
+        adminSubmitBtn.textContent = 'Saving...';
+        try {
+          const { error } = await supabase
+            .from('expenses')
+            .update({
+              name: name.trim(),
+              amount: parseFloat(amount),
+              payer,
+              assigned,
+              category: category.trim() || 'General',
+              date: date || undefined,
+            })
+            .eq('id', id);
+          if (error) throw error;
+          const idx = expenses.findIndex(e => e.id === id);
+          if (idx !== -1) {
+            expenses[idx] = { ...expenses[idx], name: name.trim(), amount: parseFloat(amount), payer, assigned, category: category.trim() || 'General', date: date || expenses[idx].date };
+          }
+        } catch (e) {
+          alert('Failed to update: ' + e.message);
+          return;
+        } finally {
+          adminSubmitBtn.disabled = false;
+        }
+      } else {
+        const idx = expenses.findIndex(e => e.id === id);
+        if (idx === -1) return;
+        expenses[idx] = { ...expenses[idx], name: name.trim(), amount: parseFloat(amount), payer, assigned, category: category.trim() || 'General', date: date || expenses[idx].date };
+        saveData();
+      }
       renderAdmin();
     }
 
-    function deleteExpense(id) {
+    async function deleteExpense(id) {
       if (!confirm('Delete this expense?')) return;
+      if (isSupabaseReady()) {
+        try {
+          const { error } = await supabase.from('expenses').delete().eq('id', id);
+          if (error) throw error;
+        } catch (e) {
+          alert('Failed to delete: ' + e.message);
+          return;
+        }
+      }
       expenses = expenses.filter(e => e.id !== id);
       saveData();
       renderAdmin();
@@ -766,6 +875,7 @@
       inputDate.value = new Date().toISOString().slice(0, 10);
       adminFormTitle.innerHTML = '&#x270D;&#xFE0F; Add Expense';
       adminSubmitBtn.textContent = '&#x2795; Add Expense';
+      adminSubmitBtn.disabled = false;
       cancelEditBtn.style.display = 'none';
     }
 
@@ -805,7 +915,7 @@
     }
 
     // === FORM SUBMIT ===
-    adminForm.addEventListener('submit', (ev) => {
+    adminForm.addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const name = inputName.value.trim();
       const amount = inputAmount.value;
@@ -816,9 +926,9 @@
       if (!name || !amount) return;
 
       if (editingId) {
-        updateExpense(editingId, name, amount, payer, assigned, category, date);
+        await updateExpense(editingId, name, amount, payer, assigned, category, date);
       } else {
-        addExpense(name, amount, payer, assigned, category, date);
+        await addExpense(name, amount, payer, assigned, category, date);
       }
       resetForm();
     });
@@ -831,10 +941,12 @@
     });
 
     // === INIT ===
-    loadData();
-    showLanding();
-    populateSelects();
-    inputDate.value = new Date().toISOString().slice(0, 10);
+    (async () => {
+      await loadData();
+      showLanding();
+      populateSelects();
+      inputDate.value = new Date().toISOString().slice(0, 10);
+    })();
   </script>
 </body>
 </html>
