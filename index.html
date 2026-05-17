@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel Cost Tracker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a1a10;
+      --surface: #0f2218;
+      --surface2: #162e20;
+      --border: #1e3d2a;
+      --text: #e2f0e8;
+      --text2: #7ba58a;
+      --accent: #2ecc71;
+      --accent2: #58d68d;
+      --green: #1abc9c;
+      --red: #e74c3c;
+      --orange: #f39c12;
+      --pink: #e91e63;
+      --radius: 16px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse at 15% 40%, rgba(46,204,113,0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 30%, rgba(26,188,156,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 85%, rgba(243,156,18,0.04) 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* mountain silhouette */
+    .mountains {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 200px;
+      z-index: 0; pointer-events: none; opacity: 0.12;
+    }
+    .mountains svg {
+      width: 100%; height: 100%; display: block;
+    }
+
+    .orb {
+      position: fixed; border-radius: 50%;
+      filter: blur(70px); opacity: 0.10;
+      pointer-events: none; z-index: 0;
+      animation: orbFloat 25s ease-in-out infinite;
+    }
+    .orb:nth-child(1) { width:500px; height:500px; background:var(--accent); top:-150px; right:-100px; animation-delay:0s; }
+    .orb:nth-child(2) { width:350px; height:350px; background:var(--green); bottom:-80px; left:-80px; animation-delay:-8s; }
+    .orb:nth-child(3) { width:200px; height:200px; background:var(--orange); top:40%; left:20%; animation-delay:-16s; }
+
+    @keyframes orbFloat {
+      0%,100% { transform:translate(0,0) scale(1); }
+      25% { transform:translate(80px,-60px) scale(1.1); }
+      50% { transform:translate(-40px,80px) scale(0.9); }
+      75% { transform:translate(60px,40px) scale(1.05); }
+    }
+
+    .container {
+      max-width: 800px; margin: 0 auto;
+      padding: 24px 20px 60px; position: relative; z-index: 1;
+    }
+
+    header {
+      text-align: center; padding: 48px 0 32px;
+      animation: fadeDown 0.8s ease;
+    }
+    header .title-line {
+      font-size: 2.6rem; font-weight: 900;
+      background: linear-gradient(135deg, #58d68d, #1abc9c);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; letter-spacing: -0.5px;
+      animation: textReveal 1.2s ease forwards;
+    }
+
+    header .subtitle-line {
+      font-size: 1.3rem; font-weight: 300;
+      color: var(--text2); margin-top: 6px; letter-spacing: 1px;
+      opacity: 0;
+      animation: textReveal 1s ease 0.6s forwards;
+      position: relative;
+    }
+    header .subtitle-line::after {
+      content: '';
+      display: block; width: 0;
+      height: 2px; margin: 10px auto 0;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: lineGrow 1.2s ease 1.2s forwards;
+    }
+    header p { color: var(--text2); margin-top: 12px; font-size: 0.9rem; opacity: 0.7; }
+
+    @keyframes textReveal {
+      0% { opacity: 0; transform: translateY(24px) scale(0.96); letter-spacing: -3px; }
+      100% { opacity: 1; transform: translateY(0) scale(1); letter-spacing: normal; }
+    }
+    @keyframes lineGrow {
+      0% { width: 0; }
+      100% { width: 120px; }
+    }
+
+    /* ===== LANDING ===== */
+    .landing {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 50vh;
+      animation: fadeUp 0.8s ease 0.1s both;
+    }
+    .landing .subtitle {
+      color: var(--text2); font-size: 1rem; margin-bottom: 40px; text-align: center;
+    }
+    .landing-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+      width: 100%; max-width: 500px;
+    }
+    .landing-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 36px 24px; text-align: center;
+      cursor: pointer; transition: all 0.3s; box-shadow: var(--shadow);
+      position: relative; overflow: hidden;
+    }
+    .landing-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    }
+    .landing-card.admin::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .landing-card.traveler::before { background: linear-gradient(90deg, var(--green), #f1c40f); }
+    .landing-card:hover {
+      transform: translateY(-6px); border-color: var(--accent);
+    }
+    .landing-card .icon { font-size: 3rem; margin-bottom: 12px; }
+    .landing-card .label { font-size: 1.2rem; font-weight: 700; }
+    .landing-card .desc { font-size: 0.8rem; color: var(--text2); margin-top: 4px; }
+
+    /* ===== NAV BAR ===== */
+    .nav-bar {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 24px; animation: fadeUp 0.6s ease;
+    }
+    .nav-bar .back-btn {
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text2); padding: 8px 16px; border-radius: 10px;
+      cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .nav-bar .back-btn:hover { border-color: var(--accent); color: var(--text); }
+    .nav-bar .title { font-size: 1.1rem; font-weight: 700; flex: 1; }
+    .nav-bar .badge {
+      font-size: 0.75rem; background: var(--surface2);
+      padding: 4px 12px; border-radius: 20px; color: var(--text2);
+    }
+
+    /* ===== TRAVELER SELECT ===== */
+    .traveler-select {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px; animation: fadeUp 0.6s ease;
+    }
+    .traveler-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 16px; text-align: center;
+      cursor: pointer; transition: all 0.3s; box-shadow: var(--shadow);
+      animation: fadeUp 0.5s ease both;
+    }
+    .traveler-card:hover {
+      transform: translateY(-4px); border-color: var(--green);
+    }
+    .traveler-card .avatar {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--surface2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px; font-size: 1.4rem; font-weight: 700;
+    }
+    .traveler-card .name { font-weight: 600; font-size: 1rem; }
+    .traveler-card .cost {
+      font-size: 0.85rem; color: var(--green); margin-top: 4px;
+    }
+
+    /* ===== TOTAL CARD ===== */
+    .total-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px; text-align: center;
+      margin-bottom: 24px; box-shadow: var(--shadow); position: relative;
+      overflow: hidden; animation: fadeUp 0.6s ease;
+    }
+    .total-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), #f1c40f);
+    }
+    .total-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text2); margin-bottom: 6px; }
+    .total-amount { font-size: 3rem; font-weight: 800; line-height: 1.2; }
+    .total-amount .currency { font-size: 1.8rem; color: var(--text2); }
+
+    .person-strip {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+      margin-top: 16px;
+    }
+    .person-strip span {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 6px 14px; font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+    .person-strip span:hover { border-color: var(--accent); }
+
+    /* ===== ADMIN FORM ===== */
+    .admin-form {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; margin-bottom: 24px;
+      box-shadow: var(--shadow); animation: fadeUp 0.4s ease;
+    }
+    .admin-form h2 { font-size: 1.1rem; margin-bottom: 16px; color: var(--accent); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text2); }
+    .form-group input, .form-group select {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); padding: 10px 12px; border-radius: 8px;
+      font-size: 0.9rem; outline: none; transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+    .form-group select option { background: var(--surface2); color: var(--text); }
+
+    .btn {
+      padding: 10px 20px; border: none; border-radius: 8px;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #5a4bd1; transform: translateY(-1px); }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger:hover { background: #e86565; transform: translateY(-1px); }
+    .btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text2); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ===== EXPENSE LIST ===== */
+    .expenses-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px; animation: fadeUp 0.6s ease;
+    }
+    .expenses-header h2 { font-size: 1.1rem; }
+    .expenses-header .count {
+      font-size: 0.8rem; color: var(--text2);
+      background: var(--surface2); padding: 4px 12px; border-radius: 20px;
+    }
+
+    .empty-state {
+      text-align: center; padding: 48px 20px; color: var(--text2);
+      animation: fadeUp 0.6s ease;
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.4; }
+    .empty-state p { font-size: 0.95rem; }
+
+    .expense-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 20px;
+      margin-bottom: 10px; display: flex; align-items: center;
+      gap: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      animation: slideIn 0.4s ease both;
+      transition: transform 0.2s, border-color 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .expense-card:hover { transform: translateX(4px); border-color: var(--accent); }
+    .expense-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; border-radius: 0 3px 3px 0; opacity: 0.5;
+    }
+    .expense-card.assigned-to-0::before { background: var(--accent); }
+    .expense-card.assigned-to-1::before { background: var(--green); }
+    .expense-card.assigned-to-2::before { background: var(--orange); }
+    .expense-card.assigned-to-3::before { background: var(--pink); }
+    .expense-card.assigned-to-4::before { background: #00b894; }
+    .expense-card.assigned-to-5::before { background: #e17055; }
+
+    .expense-card .emoji { font-size: 1.5rem; width: 36px; text-align: center; flex-shrink: 0; }
+    .expense-card .info { flex: 1; min-width: 0; }
+    .expense-card .name { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; }
+    .expense-card .meta { font-size: 0.78rem; color: var(--text2); display: flex; flex-wrap: wrap; gap: 10px; }
+    .expense-card .meta span { display: flex; align-items: center; gap: 3px; }
+    .expense-card .amount { font-size: 1.1rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+    .expense-card .amount.green { color: var(--green); }
+    .expense-card .actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      z-index: 100; animation: fadeIn 0.3s ease;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 32px;
+      width: 90%; max-width: 380px; box-shadow: var(--shadow);
+      text-align: center; animation: popIn 0.4s ease;
+    }
+    .modal-box h2 { font-size: 1.2rem; margin-bottom: 6px; }
+    .modal-box p { font-size: 0.9rem; color: var(--text2); margin-bottom: 20px; }
+    .modal-box input {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); padding: 12px 16px; border-radius: 10px;
+      font-size: 1rem; outline: none; transition: border-color 0.2s;
+      margin-bottom: 16px;
+    }
+    .modal-box input:focus { border-color: var(--accent); }
+    .modal-box .error { color: var(--red); font-size: 0.85rem; margin-bottom: 12px; display: none; }
+    .modal-box .btn { width: 100%; }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes slideIn { from{opacity:0;transform:translateX(-20px)} to{opacity:1;transform:translateX(0)} }
+    @keyframes popIn { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
+    @keyframes countUp {
+      from{opacity:0;transform:translateY(10px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+    .count-anim { animation: countUp 0.5s ease; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.8rem; }
+      .total-amount { font-size: 2.2rem; }
+      .landing-grid { grid-template-columns: 1fr; }
+      .form-row, .form-row.three { grid-template-columns: 1fr; }
+      .traveler-select { grid-template-columns: 1fr 1fr; }
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="orb"></div>
+  <div class="orb"></div>
+  <div class="orb"></div>
+
+  <div class="mountains">
+    <svg viewBox="0 0 1440 200" preserveAspectRatio="none">
+      <path fill="var(--accent)" opacity="0.3" d="M0,120 C240,40 360,160 480,80 C600,0 720,120 840,60 C960,0 1080,100 1200,50 C1320,0 1440,80 1440,80 L1440,200 L0,200 Z"/>
+      <path fill="var(--accent)" opacity="0.15" d="M0,150 C180,80 300,180 480,110 C600,60 780,160 960,90 C1140,20 1320,120 1440,70 L1440,200 L0,200 Z"/>
+      <path fill="var(--green)" opacity="0.10" d="M0,170 C200,120 400,200 600,140 C800,80 1000,180 1200,120 C1350,80 1440,130 1440,130 L1440,200 L0,200 Z"/>
+    </svg>
+  </div>
+
+  <div class="container" id="app">
+    <!-- HEADER -->
+    <header>
+      <div class="title-line">Bandarban Tour</div>
+      <div class="subtitle-line">Shagorer vitor Bagan</div>
+      <p>Keep tabs on the trip with the crew</p>
+    </header>
+
+    <!-- ===== LANDING PAGE ===== -->
+    <div id="pageLanding" class="landing">
+      <p class="subtitle">Who's checking in?</p>
+      <div class="landing-grid">
+        <div class="landing-card admin" onclick="showAdminLogin()">
+          <div class="icon">&#x1F6E1;&#xFE0F;</div>
+          <div class="label">Admin</div>
+          <div class="desc">Manage all expenses</div>
+        </div>
+        <div class="landing-card traveler" onclick="showTravelerSelect()">
+          <div class="icon">&#x1F9D1;&#x200D;&#x1F91D;&#x200D;&#x1F9D1;</div>
+          <div class="label">Traveler</div>
+          <div class="desc">View your expenses</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TRAVELER SELECT PAGE ===== -->
+    <div id="pageTravelerSelect" class="hidden">
+      <div class="nav-bar">
+        <button class="back-btn" onclick="showLanding()">&#x2190; Back</button>
+        <span class="title">Choose your name</span>
+      </div>
+      <div class="traveler-select" id="travelerGrid"></div>
+    </div>
+
+    <!-- ===== TRAVELER DASHBOARD ===== -->
+    <div id="pageTravelerDash" class="hidden">
+      <div class="nav-bar">
+        <button class="back-btn" onclick="showTravelerSelect()">&#x2190; Back</button>
+        <span class="title" id="travelerDashName">Traveler</span>
+      </div>
+
+      <div class="total-card">
+        <div class="total-label">Your Total</div>
+        <div class="total-amount" id="travelerTotal"><span class="currency">$</span>0</div>
+      </div>
+
+      <div class="expenses-header">
+        <h2>&#x1F4CB; Your Expenses</h2>
+        <span class="count" id="travelerCount">0 items</span>
+      </div>
+      <div id="travelerList"></div>
+    </div>
+
+    <!-- ===== ADMIN DASHBOARD ===== -->
+    <div id="pageAdmin" class="hidden">
+      <div class="nav-bar">
+        <button class="back-btn" onclick="showLanding()">&#x2190; Back</button>
+        <span class="title">&#x1F6E1;&#xFE0F; Admin Dashboard</span>
+        <span class="badge" id="adminBadge">0 items</span>
+      </div>
+
+      <div class="total-card">
+        <div class="total-label">Total Spent</div>
+        <div class="total-amount" id="adminTotal"><span class="currency">$</span>0</div>
+        <div class="person-strip" id="adminPersonStrip"></div>
+      </div>
+
+      <div class="admin-form">
+        <h2 id="adminFormTitle">&#x270D;&#xFE0F; Add Expense</h2>
+        <form id="adminExpenseForm" autocomplete="off">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Description</label>
+              <input type="text" id="inputName" placeholder="e.g. Hotel" required>
+            </div>
+            <div class="form-group">
+              <label>Amount ($)</label>
+              <input type="number" id="inputAmount" placeholder="0.00" min="0" step="0.01" required>
+            </div>
+          </div>
+          <div class="form-row three">
+            <div class="form-group">
+              <label>Paid By</label>
+              <select id="inputPayer"></select>
+            </div>
+            <div class="form-group">
+              <label>Assigned To</label>
+              <select id="inputAssigned"></select>
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <input type="text" id="inputCategory" placeholder="e.g. Food" value="General">
+            </div>
+          </div>
+          <div class="form-row" style="grid-template-columns:1fr;">
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="inputDate">
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:4px;">
+            <button type="submit" class="btn btn-primary" id="adminSubmitBtn">&#x2795; Add Expense</button>
+            <button type="button" class="btn btn-outline" id="cancelEditBtn" style="display:none">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="expenses-header">
+        <h2>&#x1F4CB; All Expenses</h2>
+        <span class="count" id="adminCount">0</span>
+      </div>
+      <div id="adminList"></div>
+    </div>
+  </div>
+
+  <!-- ===== PASSWORD MODAL ===== -->
+  <div class="modal-overlay" id="passwordModal">
+    <div class="modal-box">
+      <h2>&#x1F512; Admin Access</h2>
+      <p>Enter the admin password</p>
+      <input type="password" id="passwordInput" placeholder="Enter password" autocomplete="off">
+      <div class="error" id="passwordError">Incorrect password</div>
+      <button class="btn btn-primary" id="passwordSubmit">Unlock</button>
+    </div>
+  </div>
+
+  <script>
+    const TRAVELERS = ['Abid', 'Ashraful', 'Afran', 'Nirob', 'Tushar', 'Forhad'];
+    const ADMIN_PASSWORD = 'shagor bagan';
+    const COLORS = ['#2ecc71','#1abc9c','#f39c12','#e74c3c','#3498db','#9b59b6'];
+
+    let expenses = [];
+    let editingId = null;
+
+    // DOM
+    const $ = id => document.getElementById(id);
+    const pageLanding = $('pageLanding');
+    const pageTravelerSelect = $('pageTravelerSelect');
+    const pageTravelerDash = $('pageTravelerDash');
+    const pageAdmin = $('pageAdmin');
+    const travelerGrid = $('travelerGrid');
+    const travelerDashName = $('travelerDashName');
+    const travelerTotal = $('travelerTotal');
+    const travelerCount = $('travelerCount');
+    const travelerList = $('travelerList');
+    const adminTotal = $('adminTotal');
+    const adminPersonStrip = $('adminPersonStrip');
+    const adminCount = $('adminCount');
+    const adminBadge = $('adminBadge');
+    const adminList = $('adminList');
+    const adminForm = $('adminExpenseForm');
+    const adminFormTitle = $('adminFormTitle');
+    const adminSubmitBtn = $('adminSubmitBtn');
+    const inputName = $('inputName');
+    const inputAmount = $('inputAmount');
+    const inputPayer = $('inputPayer');
+    const inputAssigned = $('inputAssigned');
+    const inputCategory = $('inputCategory');
+    const inputDate = $('inputDate');
+    const cancelEditBtn = $('cancelEditBtn');
+    const passwordModal = $('passwordModal');
+    const passwordInput = $('passwordInput');
+    const passwordError = $('passwordError');
+    const passwordSubmit = $('passwordSubmit');
+
+    // === DATA ===
+    function loadData() {
+      try {
+        const raw = localStorage.getItem('travelTrackerData');
+        expenses = raw ? JSON.parse(raw) : [];
+      } catch { expenses = []; }
+    }
+    function saveData() {
+      localStorage.setItem('travelTrackerData', JSON.stringify(expenses));
+    }
+
+    // === NAVIGATION ===
+    function hideAll() {
+      [pageLanding, pageTravelerSelect, pageTravelerDash, pageAdmin].forEach(p => p.classList.add('hidden'));
+    }
+    function showLanding() {
+      hideAll();
+      pageLanding.classList.remove('hidden');
+      renderAll();
+    }
+    function showTravelerSelect() {
+      hideAll();
+      pageTravelerSelect.classList.remove('hidden');
+      renderTravelerGrid();
+    }
+    function showTravelerDash(name) {
+      hideAll();
+      pageTravelerDash.classList.remove('hidden');
+      travelerDashName.textContent = name;
+      renderTravelerDash(name);
+    }
+    function showAdmin() {
+      hideAll();
+      pageAdmin.classList.remove('hidden');
+      populateSelects();
+      renderAdmin();
+    }
+    function showAdminLogin() {
+      passwordModal.classList.add('open');
+      passwordInput.value = '';
+      passwordError.style.display = 'none';
+      passwordInput.focus();
+    }
+
+    // === PASSWORD ===
+    function unlockAdmin() {
+      if (passwordInput.value === ADMIN_PASSWORD) {
+        passwordModal.classList.remove('open');
+        showAdmin();
+      } else {
+        passwordError.style.display = 'block';
+        passwordInput.value = '';
+        passwordInput.focus();
+      }
+    }
+    passwordSubmit.addEventListener('click', unlockAdmin);
+    passwordInput.addEventListener('keydown', e => { if (e.key === 'Enter') unlockAdmin(); });
+    passwordModal.addEventListener('click', e => { if (e.target === passwordModal) passwordModal.classList.remove('open'); });
+
+    // === RENDER: Traveler Grid ===
+    function renderTravelerGrid() {
+      const byPerson = {};
+      expenses.forEach(e => {
+        byPerson[e.assigned] = (byPerson[e.assigned] || 0) + e.amount;
+      });
+      travelerGrid.innerHTML = TRAVELERS.map((name, i) => {
+        const total = byPerson[name] || 0;
+        const bg = COLORS[i % COLORS.length];
+        return `
+          <div class="traveler-card" style="animation-delay:${i * 0.08}s" onclick="showTravelerDash('${name}')">
+            <div class="avatar" style="background:linear-gradient(135deg, var(--surface2), ${bg})">${name[0]}</div>
+            <div class="name">${name}</div>
+            <div class="cost">${total > 0 ? '$' + total.toFixed(2) : 'No expenses'}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // === RENDER: Traveler Dashboard ===
+    function renderTravelerDash(name) {
+      const personExpenses = expenses.filter(e => e.assigned === name);
+      const total = personExpenses.reduce((s, e) => s + e.amount, 0);
+      travelerTotal.innerHTML = `<span class="currency">$</span>${total.toFixed(2)}`;
+      travelerCount.textContent = `${personExpenses.length} item${personExpenses.length !== 1 ? 's' : ''}`;
+
+      if (personExpenses.length === 0) {
+        travelerList.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">&#x1F30D;</div>
+            <p>No expenses assigned to you yet!</p>
+          </div>`;
+        return;
+      }
+
+      const sorted = [...personExpenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+      travelerList.innerHTML = sorted.map((e, idx) => {
+        const dateStr = formatDate(e.date);
+        const cat = e.category || 'General';
+        const emoji = categoryEmoji(cat);
+        return `
+          <div class="expense-card" style="animation-delay:${idx * 0.06}s">
+            <div class="emoji">${emoji}</div>
+            <div class="info">
+              <div class="name">${esc(e.name)}</div>
+              <div class="meta">
+                <span>&#x1F464; paid by ${esc(e.payer)}</span>
+                <span>&#x1F4C5; ${dateStr}</span>
+                <span>&#x1F3F7; ${esc(cat)}</span>
+              </div>
+            </div>
+            <div class="amount green">$${e.amount.toFixed(2)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // === RENDER: Admin Dashboard ===
+    function renderAdmin() {
+      populateSelects();
+      const total = expenses.reduce((s, e) => s + e.amount, 0);
+      adminTotal.innerHTML = `<span class="currency">$</span>${total.toFixed(2)}`;
+
+      const byPerson = {};
+      expenses.forEach(e => {
+        byPerson[e.assigned] = (byPerson[e.assigned] || 0) + e.amount;
+      });
+      adminPersonStrip.innerHTML = TRAVELERS.map((name, i) => {
+        const amt = byPerson[name] || 0;
+        const color = COLORS[i % COLORS.length];
+        return `<span style="border-color:${color}">${name}: $${amt.toFixed(2)}</span>`;
+      }).join('');
+
+      const sorted = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+      adminCount.textContent = `${sorted.length} item${sorted.length !== 1 ? 's' : ''}`;
+      adminBadge.textContent = `${sorted.length} item${sorted.length !== 1 ? 's' : ''}`;
+
+      if (sorted.length === 0) {
+        adminList.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">&#x1F4CB;</div>
+            <p>No expenses yet. Add one above!</p>
+          </div>`;
+        return;
+      }
+
+      adminList.innerHTML = sorted.map((e, idx) => {
+        const dateStr = formatDate(e.date);
+        const cat = e.category || 'General';
+        const emoji = categoryEmoji(cat);
+        const assignedIdx = TRAVELERS.indexOf(e.assigned);
+        return `
+          <div class="expense-card assigned-to-${Math.max(0, assignedIdx)}" style="animation-delay:${idx * 0.04}s" data-id="${e.id}">
+            <div class="emoji">${emoji}</div>
+            <div class="info">
+              <div class="name">${esc(e.name)}</div>
+              <div class="meta">
+                <span>&#x1F464; paid: ${esc(e.payer)}</span>
+                <span>&#x1F91D; owed: ${esc(e.assigned)}</span>
+                <span>&#x1F4C5; ${dateStr}</span>
+                <span>&#x1F3F7; ${esc(cat)}</span>
+              </div>
+            </div>
+            <div class="amount green">$${e.amount.toFixed(2)}</div>
+            <div class="actions">
+              <button class="btn btn-sm btn-outline" onclick="editExpense('${e.id}')">&#x270F;&#xFE0F;</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteExpense('${e.id}')">&#x1F5D1;&#xFE0F;</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderAll() {
+      if (!pageLanding.classList.contains('hidden')) return;
+      if (!pageTravelerSelect.classList.contains('hidden')) renderTravelerGrid();
+      if (!pageTravelerDash.classList.contains('hidden')) {
+        const name = travelerDashName.textContent;
+        if (TRAVELERS.includes(name)) renderTravelerDash(name);
+      }
+      if (!pageAdmin.classList.contains('hidden')) renderAdmin();
+    }
+
+    // === CRUD ===
+    function addExpense(name, amount, payer, assigned, category, date) {
+      const expense = {
+        id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2),
+        name: name.trim(),
+        amount: parseFloat(amount),
+        payer: payer,
+        assigned: assigned,
+        category: category.trim() || 'General',
+        date: date || new Date().toISOString().slice(0, 10),
+        createdAt: new Date().toISOString(),
+      };
+      expenses.push(expense);
+      saveData();
+      renderAdmin();
+    }
+
+    function updateExpense(id, name, amount, payer, assigned, category, date) {
+      const idx = expenses.findIndex(e => e.id === id);
+      if (idx === -1) return;
+      expenses[idx] = {
+        ...expenses[idx],
+        name: name.trim(),
+        amount: parseFloat(amount),
+        payer: payer,
+        assigned: assigned,
+        category: category.trim() || 'General',
+        date: date || expenses[idx].date,
+      };
+      saveData();
+      renderAdmin();
+    }
+
+    function deleteExpense(id) {
+      if (!confirm('Delete this expense?')) return;
+      expenses = expenses.filter(e => e.id !== id);
+      saveData();
+      renderAdmin();
+    }
+
+    function editExpense(id) {
+      const e = expenses.find(x => x.id === id);
+      if (!e) return;
+      editingId = id;
+      inputName.value = e.name;
+      inputAmount.value = e.amount;
+      inputPayer.value = e.payer;
+      inputAssigned.value = e.assigned;
+      inputCategory.value = e.category || 'General';
+      inputDate.value = e.date || '';
+      adminFormTitle.innerHTML = '&#x270F;&#xFE0F; Edit Expense';
+      adminSubmitBtn.textContent = '&#x1F504; Update';
+      cancelEditBtn.style.display = 'inline-block';
+      adminForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function resetForm() {
+      editingId = null;
+      inputName.value = '';
+      inputAmount.value = '';
+      inputCategory.value = 'General';
+      inputPayer.value = TRAVELERS[0];
+      inputAssigned.value = TRAVELERS[0];
+      inputDate.value = new Date().toISOString().slice(0, 10);
+      adminFormTitle.innerHTML = '&#x270D;&#xFE0F; Add Expense';
+      adminSubmitBtn.textContent = '&#x2795; Add Expense';
+      cancelEditBtn.style.display = 'none';
+    }
+
+    // === UTILS ===
+    function populateSelects() {
+      const payerOpts = TRAVELERS.map(n => `<option value="${n}">${n}</option>`).join('');
+      inputPayer.innerHTML = payerOpts;
+      inputAssigned.innerHTML = payerOpts;
+    }
+
+    function categoryEmoji(cat) {
+      const map = {
+        'food':'&#x1F372;','meal':'&#x1F372;','eat':'&#x1F372;',
+        'hotel':'&#x1F3E8;','stay':'&#x1F3E8;','lodging':'&#x1F3E8;',
+        'transport':'&#x1F68C;','uber':'&#x1F696;','taxi':'&#x1F696;','car':'&#x1F697;','flight':'&#x2708;&#xFE0F;',
+        'gas':'&#x26FD;','fuel':'&#x26FD;',
+        'activity':'&#x1F3AA;','fun':'&#x1F389;','ticket':'&#x1F39F;&#xFE0F;',
+        'shop':'&#x1F6CD;&#xFE0F;','souvenir':'&#x1F6CD;&#xFE0F;',
+        'drink':'&#x1F37A;','beer':'&#x1F37A;','bar':'&#x1F37A;',
+        'coffee':'&#x2615;','general':'&#x1F4B5;',
+      };
+      const lower = cat.toLowerCase();
+      for (const [k, emoji] of Object.entries(map)) { if (lower.includes(k)) return emoji; }
+      return '&#x1F4B5;';
+    }
+
+    function formatDate(d) {
+      if (!d) return '—';
+      const dt = new Date(d + 'T00:00:00');
+      return dt.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    }
+
+    function esc(text) {
+      const d = document.createElement('div');
+      d.textContent = text;
+      return d.innerHTML;
+    }
+
+    // === FORM SUBMIT ===
+    adminForm.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      const name = inputName.value.trim();
+      const amount = inputAmount.value;
+      const payer = inputPayer.value;
+      const assigned = inputAssigned.value;
+      const category = inputCategory.value.trim();
+      const date = inputDate.value;
+      if (!name || !amount) return;
+
+      if (editingId) {
+        updateExpense(editingId, name, amount, payer, assigned, category, date);
+      } else {
+        addExpense(name, amount, payer, assigned, category, date);
+      }
+      resetForm();
+    });
+
+    cancelEditBtn.addEventListener('click', resetForm);
+
+    // auto-sync Assigned To when Paid By changes
+    inputPayer.addEventListener('change', () => {
+      if (!editingId) inputAssigned.value = inputPayer.value;
+    });
+
+    // === INIT ===
+    loadData();
+    showLanding();
+    populateSelects();
+    inputDate.value = new Date().toISOString().slice(0, 10);
+  </script>
+</body>
+</html>
