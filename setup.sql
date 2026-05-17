@@ -15,8 +15,23 @@ CREATE TABLE expenses (
 -- 2. Enable Row Level Security
 ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 
--- 3. Allow public access (no login required since password is in-app)
+-- 3. Create the travelers table
+CREATE TABLE travelers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 4. Enable RLS on travelers
+ALTER TABLE travelers ENABLE ROW LEVEL SECURITY;
+
+-- 5. Allow public access (no login required since password is in-app)
 CREATE POLICY "Allow all" ON expenses
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY "Allow all" ON travelers
   FOR ALL
   USING (true)
   WITH CHECK (true);

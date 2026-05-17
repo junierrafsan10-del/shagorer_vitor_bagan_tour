@@ -229,6 +229,39 @@
     .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
     .form-group select option { background: var(--surface2); color: var(--text); }
 
+    /* ===== TRAVELER MANAGEMENT ===== */
+    .traveler-mgmt {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; margin-bottom: 24px;
+      box-shadow: var(--shadow); animation: fadeUp 0.4s ease;
+    }
+    .traveler-mgmt h2 { font-size: 1.1rem; margin-bottom: 16px; color: var(--orange); }
+    .traveler-mgmt .add-row {
+      display: flex; gap: 8px; margin-bottom: 14px;
+    }
+    .traveler-mgmt .add-row input {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); padding: 10px 12px; border-radius: 8px;
+      font-size: 0.9rem; outline: none; transition: border-color 0.2s;
+    }
+    .traveler-mgmt .add-row input:focus { border-color: var(--orange); }
+    .traveler-list {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .traveler-list .chip {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 6px 14px; font-size: 0.82rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .traveler-list .chip .del {
+      cursor: pointer; opacity: 0.5; transition: opacity 0.2s;
+      font-size: 0.9rem;
+    }
+    .traveler-list .chip .del:hover { opacity: 1; color: var(--red); }
+    .traveler-list .chip .dot {
+      width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+    }
+
     .btn {
       padding: 10px 20px; border: none; border-radius: 8px;
       font-size: 0.9rem; font-weight: 600; cursor: pointer;
@@ -274,12 +307,10 @@
       content: ''; position: absolute; left: 0; top: 0; bottom: 0;
       width: 3px; border-radius: 0 3px 3px 0; opacity: 0.5;
     }
-    .expense-card.assigned-to-0::before { background: var(--accent); }
-    .expense-card.assigned-to-1::before { background: var(--green); }
-    .expense-card.assigned-to-2::before { background: var(--orange); }
-    .expense-card.assigned-to-3::before { background: var(--pink); }
-    .expense-card.assigned-to-4::before { background: #00b894; }
-    .expense-card.assigned-to-5::before { background: #e17055; }
+    .expense-card .color-bar {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; border-radius: 0 3px 3px 0; opacity: 0.5;
+    }
 
     .expense-card .emoji { font-size: 1.5rem; width: 36px; text-align: center; flex-shrink: 0; }
     .expense-card .info { flex: 1; min-width: 0; }
@@ -460,6 +491,15 @@
         </form>
       </div>
 
+      <div class="traveler-mgmt">
+        <h2>&#x1F465; Manage Travelers</h2>
+        <div class="add-row">
+          <input type="text" id="travelerNameInput" placeholder="New traveler name">
+          <button class="btn btn-primary" onclick="addTraveler()">&#x2795; Add</button>
+        </div>
+        <div class="traveler-list" id="travelerListAdmin"></div>
+      </div>
+
       <div class="expenses-header">
         <h2>&#x1F4CB; All Expenses</h2>
         <span class="count" id="adminCount">0</span>
@@ -485,9 +525,11 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvbG1sempreXpsaWJjZnloYXl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMjg3MTksImV4cCI6MjA5NDYwNDcxOX0.MQm4TajoagyIuSxXGYdAL_3f9jrRBWYxSYtVwPcyXhk';
     const SUPABASE_REST = SUPABASE_URL + '/rest/v1';
 
-    const TRAVELERS = ['Abid', 'Ashraful', 'Afran', 'Nirob', 'Tushar', 'Forhad'];
+    const TRAVELER_COLORS = ['#2ecc71','#1abc9c','#f39c12','#e74c3c','#3498db','#9b59b6','#1dd1a1','#f368e0','#ff9f43','#0abde3','#10ac84','#ee5a24'];
     const ADMIN_PASSWORD = 'shagor bagan';
-    const COLORS = ['#2ecc71','#1abc9c','#f39c12','#e74c3c','#3498db','#9b59b6'];
+
+    let travelers = [];
+    let travelerColors = [];
 
     let expenses = [];
     let editingId = null;
@@ -565,6 +607,68 @@
       localStorage.setItem('travelTrackerData', JSON.stringify(expenses));
     }
 
+    // === TRAVELERS ===
+    async function loadTravelers() {
+      try {
+        const data = await sbFetch('/travelers?select=*&order=created_at');
+        travelers = data.map(t => t.name);
+        travelerColors = travelers.map((_, i) => TRAVELER_COLORS[i % TRAVELER_COLORS.length]);
+      } catch (e) {
+        console.error('Failed to load travelers:', e);
+        travelers = [];
+        travelerColors = [];
+      }
+    }
+
+    async function addTraveler() {
+      const input = document.getElementById('travelerNameInput');
+      const name = input.value.trim();
+      if (!name) return;
+      if (travelers.includes(name)) { alert('Traveler already exists'); return; }
+      input.disabled = true;
+      try {
+        await sbFetch('/travelers', {
+          method: 'POST',
+          body: JSON.stringify({ name }),
+        });
+        input.value = '';
+        await loadTravelers();
+        refreshAdmin();
+      } catch (e) {
+        alert('Failed to add traveler: ' + e.message);
+      } finally {
+        input.disabled = false;
+        input.focus();
+      }
+    }
+
+    async function deleteTraveler(name) {
+      if (!confirm('Remove "' + name + '" and all their expenses?')) return;
+      try {
+        await sbFetch('/expenses?assigned=eq.' + encodeURIComponent(name), { method: 'DELETE' });
+        await sbFetch('/travelers?name=eq.' + encodeURIComponent(name), { method: 'DELETE' });
+        await loadTravelers();
+        await loadData();
+        refreshAdmin();
+      } catch (e) {
+        alert('Failed to delete: ' + e.message);
+      }
+    }
+
+    function refreshAdmin() {
+      populateSelects();
+      renderAdmin();
+      renderTravelerAdminList();
+    }
+
+    function renderTravelerAdminList() {
+      const container = document.getElementById('travelerListAdmin');
+      container.innerHTML = travelers.map((name, i) => {
+        const color = travelerColors[i] || '#888';
+        return `<span class="chip"><span class="dot" style="background:${color}"></span>${esc(name)}<span class="del" onclick="deleteTraveler('${name}')">&#x2716;</span></span>`;
+      }).join('');
+    }
+
     // === LOADING SPINNER ===
     function showLoading(container) {
       container.innerHTML = `
@@ -623,8 +727,10 @@
       pageAdmin.classList.remove('hidden');
       populateSelects();
       saveState({ page: 'admin', adminUnlocked: true });
+      await loadTravelers();
       await loadData();
       renderAdmin();
+      renderTravelerAdminList();
     }
     function showAdminLogin() {
       passwordModal.classList.add('open');
@@ -654,9 +760,9 @@
       expenses.forEach(e => {
         byPerson[e.assigned] = (byPerson[e.assigned] || 0) + e.amount;
       });
-      travelerGrid.innerHTML = TRAVELERS.map((name, i) => {
+      travelerGrid.innerHTML = travelers.map((name, i) => {
         const total = byPerson[name] || 0;
-        const bg = COLORS[i % COLORS.length];
+        const bg = travelerColors[i] || '#888';
         return `
           <div class="traveler-card" style="animation-delay:${i * 0.08}s" onclick="showTravelerDash('${name}')">
             <div class="avatar" style="background:linear-gradient(135deg, var(--surface2), ${bg})">${name[0]}</div>
@@ -715,9 +821,9 @@
       expenses.forEach(e => {
         byPerson[e.assigned] = (byPerson[e.assigned] || 0) + e.amount;
       });
-      adminPersonStrip.innerHTML = TRAVELERS.map((name, i) => {
+      adminPersonStrip.innerHTML = travelers.map((name, i) => {
         const amt = byPerson[name] || 0;
-        const color = COLORS[i % COLORS.length];
+        const color = travelerColors[i] || '#888';
         return `<span style="border-color:${color}">${name}: $${amt.toFixed(2)}</span>`;
       }).join('');
 
@@ -738,9 +844,11 @@
         const dateStr = formatDate(e.date);
         const cat = e.category || 'General';
         const emoji = categoryEmoji(cat);
-        const assignedIdx = TRAVELERS.indexOf(e.assigned);
+        const assignedIdx = travelers.indexOf(e.assigned);
+        const barColor = travelerColors[assignedIdx >= 0 ? assignedIdx : 0] || '#888';
         return `
-          <div class="expense-card assigned-to-${Math.max(0, assignedIdx)}" style="animation-delay:${idx * 0.04}s" data-id="${e.id}">
+          <div class="expense-card" style="animation-delay:${idx * 0.04}s;border-color:${barColor}" data-id="${e.id}">
+            <div class="color-bar" style="background:${barColor}"></div>
             <div class="emoji">${emoji}</div>
             <div class="info">
               <div class="name">${esc(e.name)}</div>
@@ -766,7 +874,7 @@
       if (!pageTravelerSelect.classList.contains('hidden')) renderTravelerGrid();
       if (!pageTravelerDash.classList.contains('hidden')) {
         const name = travelerDashName.textContent;
-        if (TRAVELERS.includes(name)) renderTravelerDash(name);
+        if (travelers.includes(name)) renderTravelerDash(name);
       }
       if (!pageAdmin.classList.contains('hidden')) renderAdmin();
     }
@@ -862,8 +970,8 @@
       inputName.value = '';
       inputAmount.value = '';
       inputCategory.value = 'General';
-      inputPayer.value = TRAVELERS[0];
-      inputAssigned.value = TRAVELERS[0];
+      inputPayer.value = travelers[0] || '';
+      inputAssigned.value = travelers[0] || '';
       inputDate.value = new Date().toISOString().slice(0, 10);
       adminFormTitle.innerHTML = '&#x270D;&#xFE0F; Add Expense';
       adminSubmitBtn.textContent = '&#x2795; Add Expense';
@@ -873,7 +981,7 @@
 
     // === UTILS ===
     function populateSelects() {
-      const payerOpts = TRAVELERS.map(n => `<option value="${n}">${n}</option>`).join('');
+      const payerOpts = travelers.map(n => `<option value="${n}">${n}</option>`).join('');
       inputPayer.innerHTML = payerOpts;
       inputAssigned.innerHTML = payerOpts;
     }
@@ -934,6 +1042,7 @@
 
     // === INIT ===
     (async () => {
+      await loadTravelers();
       await loadData();
       populateSelects();
       inputDate.value = new Date().toISOString().slice(0, 10);
