@@ -479,12 +479,11 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // ===== CONFIG — replace with your Supabase project details =====
+    // ===== Supabase config =====
     const SUPABASE_URL = 'https://kolmlzjkyzlibcfyhayw.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvbG1sempreXpsaWJjZnloYXl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMjg3MTksImV4cCI6MjA5NDYwNDcxOX0.MQm4TajoagyIuSxXGYdAL_3f9jrRBWYxSYtVwPcyXhk';
-    // ================================================================
+    const SUPABASE_REST = SUPABASE_URL + '/rest/v1';
 
     const TRAVELERS = ['Abid', 'Ashraful', 'Afran', 'Nirob', 'Tushar', 'Forhad'];
     const ADMIN_PASSWORD = 'shagor bagan';
@@ -492,7 +491,6 @@
 
     let expenses = [];
     let editingId = null;
-    let loading = false;
 
     // DOM
     const $ = id => document.getElementById(id);
@@ -525,37 +523,36 @@
     const passwordError = $('passwordError');
     const passwordSubmit = $('passwordSubmit');
 
-    // === SUPABASE CLIENT ===
-    let supabase;
-    try {
-      supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    } catch (e) {
-      console.warn('Supabase not configured. Falling back to localStorage.');
-      supabase = null;
+    // === Supabase REST helpers (no library needed) ===
+    const SB_HEADERS = {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json',
+    };
+
+    async function sbFetch(path, options = {}) {
+      const res = await fetch(SUPABASE_REST + path, {
+        ...options,
+        headers: { ...SB_HEADERS, ...options.headers },
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(res.status + ': ' + text);
+      }
+      if (res.status === 204) return null;
+      return res.json();
     }
 
-    function isSupabaseReady() {
-      return supabase && SUPABASE_URL.includes('YOUR_PROJECT') === false;
+    function isLive() {
+      return true; // always use Supabase now
     }
 
     // === DATA ===
     async function loadData() {
-      if (isSupabaseReady()) {
-        try {
-          loading = true;
-          const { data, error } = await supabase
-            .from('expenses')
-            .select('*')
-            .order('date', { ascending: false });
-          if (error) throw error;
-          expenses = data || [];
-        } catch (e) {
-          console.error('Failed to load from Supabase:', e);
-          expenses = [];
-        } finally {
-          loading = false;
-        }
-      } else {
+      try {
+        expenses = await sbFetch('/expenses?select=*&order=date.desc');
+      } catch (e) {
+        console.error('Supabase load failed, using localStorage fallback:', e);
         try {
           const raw = localStorage.getItem('travelTrackerData');
           expenses = raw ? JSON.parse(raw) : [];
@@ -565,10 +562,6 @@
     }
 
     async function saveData() {
-      if (isSupabaseReady()) {
-        // saves happen per-operation (add/update/delete)
-        return;
-      }
       localStorage.setItem('travelTrackerData', JSON.stringify(expenses));
     }
 
@@ -760,89 +753,70 @@
       if (!pageAdmin.classList.contains('hidden')) renderAdmin();
     }
 
-    // === CRUD (Supabase + localStorage fallback) ===
+    // === CRUD (Supabase REST API) ===
     async function addExpense(name, amount, payer, assigned, category, date) {
-      const expense = {
-        name: name.trim(),
-        amount: parseFloat(amount),
-        payer,
-        assigned,
-        category: category.trim() || 'General',
-        date: date || new Date().toISOString().slice(0, 10),
-        created_at: new Date().toISOString(),
-      };
-
-      if (isSupabaseReady()) {
-        adminSubmitBtn.disabled = true;
-        adminSubmitBtn.textContent = 'Saving...';
-        try {
-          const { data, error } = await supabase
-            .from('expenses')
-            .insert(expense)
-            .select();
-          if (error) throw error;
-          if (data) expenses.unshift(data[0]);
-        } catch (e) {
-          alert('Failed to save: ' + e.message);
-          return;
-        } finally {
-          adminSubmitBtn.disabled = false;
-        }
-      } else {
-        expense.id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
-        expense.created_at = expense.created_at || new Date().toISOString();
-        expenses.push(expense);
-        saveData();
+      adminSubmitBtn.disabled = true;
+      adminSubmitBtn.textContent = 'Saving...';
+      try {
+        const body = {
+          name: name.trim(),
+          amount: parseFloat(amount),
+          payer,
+          assigned,
+          category: category.trim() || 'General',
+          date: date || new Date().toISOString().slice(0, 10),
+        };
+        const data = await sbFetch('/expenses?select=*', {
+          method: 'POST',
+          body: JSON.stringify(body),
+          headers: { 'Prefer': 'return=representation' },
+        });
+        if (data && data[0]) expenses.unshift(data[0]);
+      } catch (e) {
+        alert('Failed to save: ' + e.message);
+        return;
+      } finally {
+        adminSubmitBtn.disabled = false;
       }
       renderAdmin();
     }
 
     async function updateExpense(id, name, amount, payer, assigned, category, date) {
-      if (isSupabaseReady()) {
-        adminSubmitBtn.disabled = true;
-        adminSubmitBtn.textContent = 'Saving...';
-        try {
-          const { error } = await supabase
-            .from('expenses')
-            .update({
-              name: name.trim(),
-              amount: parseFloat(amount),
-              payer,
-              assigned,
-              category: category.trim() || 'General',
-              date: date || undefined,
-            })
-            .eq('id', id);
-          if (error) throw error;
-          const idx = expenses.findIndex(e => e.id === id);
-          if (idx !== -1) {
-            expenses[idx] = { ...expenses[idx], name: name.trim(), amount: parseFloat(amount), payer, assigned, category: category.trim() || 'General', date: date || expenses[idx].date };
-          }
-        } catch (e) {
-          alert('Failed to update: ' + e.message);
-          return;
-        } finally {
-          adminSubmitBtn.disabled = false;
-        }
-      } else {
+      adminSubmitBtn.disabled = true;
+      adminSubmitBtn.textContent = 'Saving...';
+      try {
+        const body = {
+          name: name.trim(),
+          amount: parseFloat(amount),
+          payer,
+          assigned,
+          category: category.trim() || 'General',
+        };
+        if (date) body.date = date;
+        await sbFetch('/expenses?id=eq.' + id, {
+          method: 'PATCH',
+          body: JSON.stringify(body),
+        });
         const idx = expenses.findIndex(e => e.id === id);
-        if (idx === -1) return;
-        expenses[idx] = { ...expenses[idx], name: name.trim(), amount: parseFloat(amount), payer, assigned, category: category.trim() || 'General', date: date || expenses[idx].date };
-        saveData();
+        if (idx !== -1) {
+          expenses[idx] = { ...expenses[idx], ...body, id };
+        }
+      } catch (e) {
+        alert('Failed to update: ' + e.message);
+        return;
+      } finally {
+        adminSubmitBtn.disabled = false;
       }
       renderAdmin();
     }
 
     async function deleteExpense(id) {
       if (!confirm('Delete this expense?')) return;
-      if (isSupabaseReady()) {
-        try {
-          const { error } = await supabase.from('expenses').delete().eq('id', id);
-          if (error) throw error;
-        } catch (e) {
-          alert('Failed to delete: ' + e.message);
-          return;
-        }
+      try {
+        await sbFetch('/expenses?id=eq.' + id, { method: 'DELETE' });
+      } catch (e) {
+        alert('Failed to delete: ' + e.message);
+        return;
       }
       expenses = expenses.filter(e => e.id !== id);
       saveData();
