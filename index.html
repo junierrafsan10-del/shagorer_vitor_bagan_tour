@@ -3,468 +3,1095 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Travel Cost Tracker</title>
+  <title>Bandarban Tour | Shagorer Vitor Bagan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg: #0a1a10;
-      --surface: #0f2218;
-      --surface2: #162e20;
-      --border: #1e3d2a;
-      --text: #e2f0e8;
-      --text2: #7ba58a;
-      --accent: #2ecc71;
-      --accent2: #58d68d;
-      --green: #1abc9c;
-      --red: #e74c3c;
-      --orange: #f39c12;
-      --pink: #e91e63;
-      --radius: 16px;
-      --shadow: 0 8px 32px rgba(0,0,0,0.5);
+      --bg-primary: #f8f6f3;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f0ede8;
+      --text-primary: #1a1a18;
+      --text-secondary: #5c5c58;
+      --text-muted: #8a8a86;
+      --accent-green: #2d5a3d;
+      --accent-green-light: #3d7a52;
+      --accent-green-dark: #1e3d29;
+      --accent-earth: #8b6f4e;
+      --accent-rust: #c47d4e;
+      --accent-gold: #d4a017;
+      --border: #e2dfd8;
+      --shadow-sm: 0 2px 8px rgba(26,26,24,0.04);
+      --shadow-md: 0 8px 24px rgba(26,26,24,0.08);
+      --shadow-lg: 0 16px 48px rgba(26,26,24,0.12);
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
     }
 
+    html { font-size: 16px; }
+
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
       min-height: 100vh;
+      line-height: 1.5;
       overflow-x: hidden;
     }
 
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background:
-        radial-gradient(ellipse at 15% 40%, rgba(46,204,113,0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 85% 30%, rgba(26,188,156,0.05) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 85%, rgba(243,156,18,0.04) 0%, transparent 50%);
-      pointer-events: none; z-index: 0;
-    }
-
-    /* mountain silhouette */
-    .mountains {
-      position: fixed; bottom: 0; left: 0; right: 0; height: 200px;
-      z-index: 0; pointer-events: none; opacity: 0.12;
-    }
-    .mountains svg {
-      width: 100%; height: 100%; display: block;
-    }
-
-    .orb {
-      position: fixed; border-radius: 50%;
-      filter: blur(70px); opacity: 0.10;
-      pointer-events: none; z-index: 0;
-      animation: orbFloat 25s ease-in-out infinite;
-    }
-    .orb:nth-child(1) { width:500px; height:500px; background:var(--accent); top:-150px; right:-100px; animation-delay:0s; }
-    .orb:nth-child(2) { width:350px; height:350px; background:var(--green); bottom:-80px; left:-80px; animation-delay:-8s; }
-    .orb:nth-child(3) { width:200px; height:200px; background:var(--orange); top:40%; left:20%; animation-delay:-16s; }
-
-    @keyframes orbFloat {
-      0%,100% { transform:translate(0,0) scale(1); }
-      25% { transform:translate(80px,-60px) scale(1.1); }
-      50% { transform:translate(-40px,80px) scale(0.9); }
-      75% { transform:translate(60px,40px) scale(1.05); }
-    }
-
-    .container {
-      max-width: 800px; margin: 0 auto;
-      padding: 24px 20px 60px; position: relative; z-index: 1;
-    }
-
-    header {
-      text-align: center; padding: 48px 0 32px;
-      animation: fadeDown 0.8s ease;
-    }
-    header .title-line {
-      font-size: 2.6rem; font-weight: 900;
-      background: linear-gradient(135deg, #58d68d, #1abc9c);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text; letter-spacing: -0.5px;
-      animation: textReveal 1.2s ease forwards;
-    }
-
-    header .subtitle-line {
-      font-size: 1.3rem; font-weight: 300;
-      color: var(--text2); margin-top: 6px; letter-spacing: 1px;
-      opacity: 0;
-      animation: textReveal 1s ease 0.6s forwards;
+    /* Hero Section */
+    .hero {
       position: relative;
+      width: 100%;
+      min-height: 50vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: url('C:/Users/Abid/Downloads/unnamed.jpg') center center / cover no-repeat;
     }
-    header .subtitle-line::after {
+
+    .hero::before {
       content: '';
-      display: block; width: 0;
-      height: 2px; margin: 10px auto 0;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      animation: lineGrow 1.2s ease 1.2s forwards;
-    }
-    header p { color: var(--text2); margin-top: 12px; font-size: 0.9rem; opacity: 0.7; }
-
-    @keyframes textReveal {
-      0% { opacity: 0; transform: translateY(24px) scale(0.96); letter-spacing: -3px; }
-      100% { opacity: 1; transform: translateY(0) scale(1); letter-spacing: normal; }
-    }
-    @keyframes lineGrow {
-      0% { width: 0; }
-      100% { width: 120px; }
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' viewBox='0 0 400 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 250 L0 180 C100 100 200 220 300 120 C350 70 400 150 400 150 L400 250 Z' fill='%231e3d29' fill-opacity='0.3'/%3E%3Cpath d='M0 250 L0 200 C80 140 180 230 280 160 C340 120 400 190 400 190 L400 250 Z' fill='%231e3d29' fill-opacity='0.2'/%3E%3C/svg%3E") bottom center / cover no-repeat;
+      opacity: 0.3;
     }
 
-    /* ===== LANDING ===== */
-    .landing {
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; min-height: 50vh;
-      animation: fadeUp 0.8s ease 0.1s both;
-    }
-    .landing .subtitle {
-      color: var(--text2); font-size: 1rem; margin-bottom: 40px; text-align: center;
-    }
-    .landing-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-      width: 100%; max-width: 500px;
-    }
-    .landing-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 36px 24px; text-align: center;
-      cursor: pointer; transition: all 0.3s; box-shadow: var(--shadow);
-      position: relative; overflow: hidden;
-    }
-    .landing-card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    }
-    .landing-card.admin::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
-    .landing-card.traveler::before { background: linear-gradient(90deg, var(--green), #f1c40f); }
-    .landing-card:hover {
-      transform: translateY(-6px); border-color: var(--accent);
-    }
-    .landing-card .icon { font-size: 3rem; margin-bottom: 12px; }
-    .landing-card .label { font-size: 1.2rem; font-weight: 700; }
-    .landing-card .desc { font-size: 0.8rem; color: var(--text2); margin-top: 4px; }
-
-    /* ===== NAV BAR ===== */
-    .nav-bar {
-      display: flex; align-items: center; gap: 12px;
-      margin-bottom: 24px; animation: fadeUp 0.6s ease;
-    }
-    .nav-bar .back-btn {
-      background: var(--surface); border: 1px solid var(--border);
-      color: var(--text2); padding: 8px 16px; border-radius: 10px;
-      cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .nav-bar .back-btn:hover { border-color: var(--accent); color: var(--text); }
-    .nav-bar .title { font-size: 1.1rem; font-weight: 700; flex: 1; }
-    .nav-bar .badge {
-      font-size: 0.75rem; background: var(--surface2);
-      padding: 4px 12px; border-radius: 20px; color: var(--text2);
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.5) 0%, rgba(15, 23, 42, 0.3) 60%, rgba(15, 23, 42, 0.6) 100%);
+      z-index: 1;
     }
 
-    /* ===== TRAVELER SELECT ===== */
-    .traveler-select {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 14px; animation: fadeUp 0.6s ease;
+    .hero-bottom-gradient {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 120px;
+      background: linear-gradient(to top, var(--bg-primary) 0%, transparent 100%);
+      z-index: 2;
     }
+
+    /* Hero Continuation - Second Image removed */
+
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 80px 40px 60px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(8px);
+      padding: 8px 16px;
+      border-radius: 50px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.05;
+      letter-spacing: -1px;
+      margin-bottom: 10px;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .hero-line {
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-rust), var(--accent-earth), var(--accent-green-light));
+      margin: 20px auto 0;
+      border-radius: 2px;
+    }
+
+    /* Container */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px 20px 80px;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 28px;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Landing */
+    .landing-page {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .landing-intro {
+      text-align: center;
+      padding: 16px 0;
+    }
+
+    .landing-intro p { color: var(--text-secondary); font-size: 1.05rem; }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .role-card {
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .role-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--accent-green);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .role-card:hover {
+      border-color: var(--accent-green);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .role-card:hover::before { transform: scaleX(1); }
+
+    .role-card.traveler::before { background: linear-gradient(90deg, var(--accent-rust), var(--accent-earth)); }
+    .role-card.traveler:hover { border-color: var(--accent-rust); }
+
+    .role-icon {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 16px;
+      background: var(--bg-tertiary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      transition: all 0.3s ease;
+    }
+
+    .role-card:hover .role-icon {
+      background: var(--accent-green);
+      color: #fff;
+      transform: scale(1.05);
+    }
+
+    .role-card.traveler:hover .role-icon { background: var(--accent-rust); }
+
+    .role-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .role-desc { color: var(--text-muted); font-size: 0.85rem; }
+
+    /* Back Button */
+    .back-btn-wrap {
+      margin-bottom: 20px;
+    }
+
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    /* Budget Card */
+    .budget-card {
+      background: var(--bg-secondary);
+      border: 2px solid var(--accent-green);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .budget-card.warning {
+      border-color: var(--accent-rust);
+    }
+
+    .budget-card.over {
+      border-color: #dc3545;
+    }
+
+    .budget-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .budget-header h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent-green);
+    }
+
+    .budget-header .budget-edit {
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+
+    .budget-header .budget-edit:hover { color: var(--accent-green); }
+
+    .budget-input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .budget-input-row input {
+      flex: 1;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+    }
+
+    .budget-input-row input:focus {
+      outline: none;
+      border-color: var(--accent-green);
+    }
+
+    .budget-bar {
+      height: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+
+    .budget-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-green-light) 100%);
+      transition: width 0.4s ease;
+    }
+
+    .budget-bar-fill.warning { background: linear-gradient(90deg, var(--accent-rust), #e8a040); }
+    .budget-bar-fill.over { background: linear-gradient(90deg, #dc3545, #e85c5c); }
+
+    .budget-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .budget-stat-item {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .budget-stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .budget-stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .budget-stat-value.spent { color: var(--accent-rust); }
+    .budget-stat-value.remaining { color: var(--accent-green); }
+    .budget-stat-value.over-budget { color: #dc3545; }
+
+    /* Filter / Sort Controls */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+
+    .filter-bar select,
+    .filter-bar input {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-family: inherit;
+    }
+
+    .filter-bar select:focus,
+    .filter-bar input:focus {
+      outline: none;
+      border-color: var(--accent-green);
+    }
+
+    .filter-bar select option { background: var(--bg-secondary); }
+
+    .filter-bar .filter-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* Traveler Grid */
+    .traveler-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+    }
+
     .traveler-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 28px 16px; text-align: center;
-      cursor: pointer; transition: all 0.3s; box-shadow: var(--shadow);
-      animation: fadeUp 0.5s ease both;
-    }
-    .traveler-card:hover {
-      transform: translateY(-4px); border-color: var(--green);
-    }
-    .traveler-card .avatar {
-      width: 56px; height: 56px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--surface2), var(--accent));
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 12px; font-size: 1.4rem; font-weight: 700;
-    }
-    .traveler-card .name { font-weight: 600; font-size: 1rem; }
-    .traveler-card .cost {
-      font-size: 0.85rem; color: var(--green); margin-top: 4px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
 
-    /* ===== TOTAL CARD ===== */
+    .traveler-card:hover {
+      border-color: var(--accent-green);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .traveler-avatar {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .traveler-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .traveler-stats {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .traveler-stats .spent { color: var(--accent-rust); font-weight: 600; }
+    .traveler-stats .saved { color: var(--accent-green); font-weight: 600; }
+
+    /* Total Cards */
     .total-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 28px; text-align: center;
-      margin-bottom: 24px; box-shadow: var(--shadow); position: relative;
-      overflow: hidden; animation: fadeUp 0.6s ease;
+      background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-green-dark) 100%);
+      border: none;
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      text-align: center;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 20px;
     }
+
     .total-card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, var(--accent), #f1c40f);
+      content: '';
+      position: absolute;
+      top: -20%;
+      right: -5%;
+      width: 140px;
+      height: 140px;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
     }
-    .total-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text2); margin-bottom: 6px; }
-    .total-amount { font-size: 3rem; font-weight: 800; line-height: 1.2; }
-    .total-amount .currency { font-size: 1.8rem; color: var(--text2); }
+
+    .total-card.savings {
+      background: linear-gradient(135deg, var(--accent-gold) 0%, #b8860b 100%);
+    }
+
+    .total-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      opacity: 0.85;
+      margin-bottom: 6px;
+    }
+
+    .total-amount {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .total-amount .currency {
+      font-size: 1.2rem;
+      opacity: 0.8;
+      vertical-align: top;
+    }
 
     .person-strip {
-      display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
       margin-top: 16px;
     }
+
     .person-strip span {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 20px; padding: 6px 14px; font-size: 0.8rem;
-      transition: all 0.2s;
+      background: rgba(255,255,255,0.15);
+      padding: 5px 12px;
+      border-radius: 50px;
+      font-size: 0.75rem;
     }
-    .person-strip span:hover { border-color: var(--accent); }
 
-    /* ===== ADMIN FORM ===== */
-    .admin-form {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 24px; margin-bottom: 24px;
-      box-shadow: var(--shadow); animation: fadeUp 0.4s ease;
+    .person-strip span.highlight {
+      background: rgba(212, 160, 23, 0.3);
+      border: 1px solid rgba(255,255,255,0.3);
     }
-    .admin-form h2 { font-size: 1.1rem; margin-bottom: 16px; color: var(--accent); }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-    .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
-    .form-group { display: flex; flex-direction: column; gap: 4px; }
-    .form-group label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text2); }
-    .form-group input, .form-group select {
-      background: var(--surface2); border: 1px solid var(--border);
-      color: var(--text); padding: 10px 12px; border-radius: 8px;
-      font-size: 0.9rem; outline: none; transition: border-color 0.2s;
-    }
-    .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
-    .form-group select option { background: var(--surface2); color: var(--text); }
 
-    /* ===== TRAVELER MANAGEMENT ===== */
-    .traveler-mgmt {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 24px; margin-bottom: 24px;
-      box-shadow: var(--shadow); animation: fadeUp 0.4s ease;
+    /* Admin Forms */
+    .form-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 20px;
     }
-    .traveler-mgmt h2 { font-size: 1.1rem; margin-bottom: 16px; color: var(--orange); }
-    .traveler-mgmt .add-row {
-      display: flex; gap: 8px; margin-bottom: 14px;
+
+    .form-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent-green);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .traveler-mgmt .add-row input {
-      flex: 1; background: var(--surface2); border: 1px solid var(--border);
-      color: var(--text); padding: 10px 12px; border-radius: 8px;
-      font-size: 0.9rem; outline: none; transition: border-color 0.2s;
+
+    .form-title.savings-title {
+      color: var(--accent-gold);
     }
-    .traveler-mgmt .add-row input:focus { border-color: var(--orange); }
-    .traveler-list {
-      display: flex; flex-wrap: wrap; gap: 8px;
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
     }
-    .traveler-list .chip {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 20px; padding: 6px 14px; font-size: 0.82rem;
-      display: flex; align-items: center; gap: 8px;
+
+    .form-grid.three-col { grid-template-columns: repeat(3, 1fr); }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
     }
-    .traveler-list .chip .del {
-      cursor: pointer; opacity: 0.5; transition: opacity 0.2s;
-      font-size: 0.9rem;
+
+    .form-group label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      font-weight: 600;
     }
-    .traveler-list .chip .del:hover { opacity: 1; color: var(--red); }
-    .traveler-list .chip .dot {
-      width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+
+    .form-group input,
+    .form-group select {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--accent-green);
+      background: var(--bg-secondary);
+    }
+
+    .form-group select option { background: var(--bg-secondary); }
+
+    .form-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
     }
 
     .btn {
-      padding: 10px 20px; border: none; border-radius: 8px;
-      font-size: 0.9rem; font-weight: 600; cursor: pointer;
-      transition: all 0.2s;
+      padding: 10px 18px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
     }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: #5a4bd1; transform: translateY(-1px); }
-    .btn-danger { background: var(--red); color: #fff; }
-    .btn-danger:hover { background: #e86565; transform: translateY(-1px); }
-    .btn-sm { padding: 6px 12px; font-size: 0.78rem; }
-    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text2); }
-    .btn-outline:hover { border-color: var(--accent); color: var(--text); }
 
-    /* ===== EXPENSE LIST ===== */
-    .expenses-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 16px; animation: fadeUp 0.6s ease;
+    .btn-primary {
+      background: var(--accent-green);
+      color: #fff;
     }
-    .expenses-header h2 { font-size: 1.1rem; }
-    .expenses-header .count {
-      font-size: 0.8rem; color: var(--text2);
-      background: var(--surface2); padding: 4px 12px; border-radius: 20px;
+
+    .btn-primary:hover {
+      background: var(--accent-green-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-gold {
+      background: var(--accent-gold);
+      color: #fff;
+    }
+
+    .btn-gold:hover {
+      background: #b8860b;
+    }
+
+    .btn-danger { background: #dc3545; color: #fff; }
+    .btn-danger:hover { background: #c82333; }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    .btn-sm { padding: 6px 12px; font-size: 0.75rem; }
+
+    /* Traveler Management */
+    .traveler-mgmt {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .traveler-mgmt h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent-earth);
+      margin-bottom: 14px;
+    }
+
+    .add-traveler-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .add-traveler-row input {
+      flex: 1;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+    }
+
+    .add-traveler-row input:focus {
+      outline: none;
+      border-color: var(--accent-earth);
+    }
+
+    .traveler-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .traveler-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 0.8rem;
+    }
+
+    .traveler-chip .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .traveler-chip .delete {
+      cursor: pointer;
+      opacity: 0.5;
+      font-size: 0.8rem;
+    }
+
+    .traveler-chip .delete:hover { opacity: 1; color: #dc3545; }
+
+    /* Expenses */
+    .expenses-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .expenses-header h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .expense-count {
+      background: var(--bg-tertiary);
+      padding: 5px 12px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
     }
 
     .empty-state {
-      text-align: center; padding: 48px 20px; color: var(--text2);
-      animation: fadeUp 0.6s ease;
-    }
-    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.4; }
-    .empty-state p { font-size: 0.95rem; }
-
-    .expense-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 16px 20px;
-      margin-bottom: 10px; display: flex; align-items: center;
-      gap: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-      animation: slideIn 0.4s ease both;
-      transition: transform 0.2s, border-color 0.2s;
-      position: relative; overflow: hidden;
-    }
-    .expense-card:hover { transform: translateX(4px); border-color: var(--accent); }
-    .expense-card::before {
-      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-      width: 3px; border-radius: 0 3px 3px 0; opacity: 0.5;
-    }
-    .expense-card .color-bar {
-      position: absolute; left: 0; top: 0; bottom: 0;
-      width: 3px; border-radius: 0 3px 3px 0; opacity: 0.5;
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
     }
 
-    .expense-card .emoji { font-size: 1.5rem; width: 36px; text-align: center; flex-shrink: 0; }
-    .expense-card .info { flex: 1; min-width: 0; }
-    .expense-card .name { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; }
-    .expense-card .meta { font-size: 0.78rem; color: var(--text2); display: flex; flex-wrap: wrap; gap: 10px; }
-    .expense-card .meta span { display: flex; align-items: center; gap: 3px; }
-    .expense-card .amount { font-size: 1.1rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
-    .expense-card .amount.green { color: var(--green); }
-    .expense-card .actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .empty-icon {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      opacity: 0.5;
+    }
 
-    /* ===== MODAL ===== */
+    /* Expense Item */
+    .expense-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .expense-item:hover {
+      border-color: var(--accent-green);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .expense-emoji {
+      width: 40px;
+      height: 40px;
+      background: var(--bg-tertiary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .expense-info { flex: 1; min-width: 0; }
+
+    .expense-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 2px;
+      color: var(--text-primary);
+    }
+
+    .expense-meta {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .expense-meta span { display: flex; align-items: center; gap: 2px; }
+
+    .expense-amount {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent-rust);
+      flex-shrink: 0;
+    }
+
+    .expense-amount.saved {
+      color: var(--accent-green);
+    }
+
+    .expense-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    /* Modal */
     .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
-      display: none; align-items: center; justify-content: center;
-      z-index: 100; animation: fadeIn 0.3s ease;
+      position: fixed;
+      inset: 0;
+      background: rgba(26,26,24,0.5);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
     }
+
     .modal-overlay.open { display: flex; }
+
     .modal-box {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 32px;
-      width: 90%; max-width: 380px; box-shadow: var(--shadow);
-      text-align: center; animation: popIn 0.4s ease;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      width: 90%;
+      max-width: 360px;
+      text-align: center;
     }
-    .modal-box h2 { font-size: 1.2rem; margin-bottom: 6px; }
-    .modal-box p { font-size: 0.9rem; color: var(--text2); margin-bottom: 20px; }
+
+    .modal-box h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      margin-bottom: 6px;
+    }
+
+    .modal-box p { color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem; }
+
     .modal-box input {
-      width: 100%; background: var(--surface2); border: 1px solid var(--border);
-      color: var(--text); padding: 12px 16px; border-radius: 10px;
-      font-size: 1rem; outline: none; transition: border-color 0.2s;
-      margin-bottom: 16px;
+      width: 100%;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      margin-bottom: 10px;
     }
-    .modal-box input:focus { border-color: var(--accent); }
-    .modal-box .error { color: var(--red); font-size: 0.85rem; margin-bottom: 12px; display: none; }
-    .modal-box .btn { width: 100%; }
 
-    /* ===== ANIMATIONS ===== */
-    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-    @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes slideIn { from{opacity:0;transform:translateX(-20px)} to{opacity:1;transform:translateX(0)} }
-    @keyframes popIn { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
-    @keyframes countUp {
-      from{opacity:0;transform:translateY(10px)}
-      to{opacity:1;transform:translateY(0)}
+    .modal-box input:focus {
+      outline: none;
+      border-color: var(--accent-green);
     }
-    .count-anim { animation: countUp 0.5s ease; }
 
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 600px) {
-      header h1 { font-size: 1.8rem; }
-      .total-amount { font-size: 2.2rem; }
-      .landing-grid { grid-template-columns: 1fr; }
-      .form-row, .form-row.three { grid-template-columns: 1fr; }
-      .traveler-select { grid-template-columns: 1fr 1fr; }
+    .modal-error {
+      color: #dc3545;
+      font-size: 0.8rem;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero-content { padding: 60px 20px 40px; }
+      .hero-title { font-size: 1.8rem; }
+      .role-grid { grid-template-columns: 1fr; }
+      .form-grid, .form-grid.three-col { grid-template-columns: 1fr; }
+      .traveler-grid { grid-template-columns: 1fr 1fr; }
+      .total-amount { font-size: 2rem; }
+      .expense-item { flex-direction: column; align-items: flex-start; }
+      .expense-actions { margin-top: 8px; }
     }
 
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <div class="orb"></div>
-  <div class="orb"></div>
-  <div class="orb"></div>
 
-  <div class="mountains">
-    <svg viewBox="0 0 1440 200" preserveAspectRatio="none">
-      <path fill="var(--accent)" opacity="0.3" d="M0,120 C240,40 360,160 480,80 C600,0 720,120 840,60 C960,0 1080,100 1200,50 C1320,0 1440,80 1440,80 L1440,200 L0,200 Z"/>
-      <path fill="var(--accent)" opacity="0.15" d="M0,150 C180,80 300,180 480,110 C600,60 780,160 960,90 C1140,20 1320,120 1440,70 L1440,200 L0,200 Z"/>
-      <path fill="var(--green)" opacity="0.10" d="M0,170 C200,120 400,200 600,140 C800,80 1000,180 1200,120 C1350,80 1440,130 1440,130 L1440,200 L0,200 Z"/>
-    </svg>
-  </div>
+  <!-- Hero -->
+  <header class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span>&#x1F3DE;</span> Bandarban, Bangladesh
+      </div>
+      <h1 class="hero-title">Shagorer Vitor Bagan</h1>
+      <p class="hero-subtitle">Travel Cost Tracker</p>
+      <div class="hero-line"></div>
+    </div>
+    <div class="hero-bottom-gradient"></div>
+  </header>
 
-  <div class="container" id="app">
-    <!-- HEADER -->
-    <header>
-      <div class="title-line">Bandarban Tour</div>
-      <div class="subtitle-line">Shagorer vitor Bagan</div>
-      <p>Keep tabs on the trip with the crew</p>
-    </header>
-
-    <!-- ===== LANDING PAGE ===== -->
-    <div id="pageLanding" class="landing">
-      <p class="subtitle">Who's checking in?</p>
-      <div class="landing-grid">
-        <div class="landing-card admin" onclick="showAdminLogin()">
-          <div class="icon">&#x1F6E1;&#xFE0F;</div>
-          <div class="label">Admin</div>
-          <div class="desc">Manage all expenses</div>
+  <main class="container">
+    <!-- Landing -->
+    <div id="pageLanding" class="landing-page">
+      <div class="landing-intro">
+        <p>Track expenses with your travel crew</p>
+      </div>
+      <div class="role-grid">
+        <div class="role-card admin" onclick="showAdminLogin()">
+          <div class="role-icon">&#x1F6E1;</div>
+          <h2 class="role-title">Admin</h2>
+          <p class="role-desc">Manage all expenses & savings</p>
         </div>
-        <div class="landing-card traveler" onclick="showTravelerSelect()">
-          <div class="icon">&#x1F9D1;&#x200D;&#x1F91D;&#x200D;&#x1F9D1;</div>
-          <div class="label">Traveler</div>
-          <div class="desc">View your expenses</div>
+        <div class="role-card traveler" onclick="showTravelerSelect()">
+          <div class="role-icon">&#x1F465;</div>
+          <h2 class="role-title">Traveler</h2>
+          <p class="role-desc">View your expenses & savings</p>
         </div>
       </div>
     </div>
 
-    <!-- ===== TRAVELER SELECT PAGE ===== -->
+    <!-- Traveler Select -->
     <div id="pageTravelerSelect" class="hidden">
-      <div class="nav-bar">
-        <button class="back-btn" onclick="showLanding()">&#x2190; Back</button>
-        <span class="title">Choose your name</span>
+      <div class="back-btn-wrap">
+        <button class="back-btn" onclick="showLanding()">
+          <span>&#x2190;</span> Back
+        </button>
       </div>
-      <div class="traveler-select" id="travelerGrid"></div>
+      <h2 class="section-title">Select Your Name</h2>
+      <div class="traveler-grid" id="travelerGrid"></div>
     </div>
 
-    <!-- ===== TRAVELER DASHBOARD ===== -->
+    <!-- Traveler Dashboard -->
     <div id="pageTravelerDash" class="hidden">
-      <div class="nav-bar">
-        <button class="back-btn" onclick="showTravelerSelect()">&#x2190; Back</button>
-        <span class="title" id="travelerDashName">Traveler</span>
+      <div class="back-btn-wrap">
+        <button class="back-btn" onclick="showTravelerSelect()">
+          <span>&#x2190;</span> Back
+        </button>
+      </div>
+      <h2 class="section-title" id="travelerDashName">Traveler</h2>
+
+      <!-- Trip Budget (Traveler view) -->
+      <div class="budget-card" id="travelerBudgetCard">
+        <div class="budget-header">
+          <h3>&#x1F4B0; Trip Budget</h3>
+        </div>
+        <div class="budget-bar">
+          <div class="budget-bar-fill" id="travelerBudgetBar" style="width:0%"></div>
+        </div>
+          <div class="budget-stats">
+            <span class="budget-stat-item">
+              <span class="budget-stat-label">Budget</span>
+              <span class="budget-stat-value" id="travelerBudgetTotal">&#x9F3;0</span>
+            </span>
+            <span class="budget-stat-item">
+              <span class="budget-stat-label">Spent</span>
+              <span class="budget-stat-value spent" id="travelerBudgetSpent">&#x9F3;0</span>
+            </span>
+            <span class="budget-stat-item">
+              <span class="budget-stat-label">Remaining</span>
+              <span class="budget-stat-value remaining" id="travelerBudgetRemaining">&#x9F3;0</span>
+            </span>
+          </div>
       </div>
 
       <div class="total-card">
-        <div class="total-label">Your Total</div>
-        <div class="total-amount" id="travelerTotal"><span class="currency">$</span>0</div>
+        <div class="total-label">Your Total Spent</div>
+        <div class="total-amount">
+          <span class="currency">&#x9F3;</span><span id="travelerSpent">0</span>
+        </div>
+      </div>
+
+      <div class="total-card savings">
+        <div class="total-label">Your Total Saved</div>
+        <div class="total-amount">
+          <span class="currency">&#x9F3;</span><span id="travelerSaved">0</span>
+        </div>
       </div>
 
       <div class="expenses-header">
-        <h2>&#x1F4CB; Your Expenses</h2>
-        <span class="count" id="travelerCount">0 items</span>
+        <h3>&#x1F4CB; Your Expenses</h3>
+        <span class="expense-count" id="travelerCount">0 items</span>
+      </div>
+      <div class="filter-bar" id="travelerFilterBar">
+        <span class="filter-label">Type:</span>
+        <select id="travelerFilterType">
+          <option value="all">All</option>
+          <option value="spent">Spent</option>
+          <option value="saved">Savings</option>
+        </select>
+        <span class="filter-label">Sort:</span>
+        <select id="travelerFilterSort">
+          <option value="date-desc">Newest</option>
+          <option value="date-asc">Oldest</option>
+          <option value="amount-desc">Amount &#x2191;</option>
+          <option value="amount-asc">Amount &#x2193;</option>
+        </select>
       </div>
       <div id="travelerList"></div>
     </div>
 
-    <!-- ===== ADMIN DASHBOARD ===== -->
+    <!-- Admin Dashboard -->
     <div id="pageAdmin" class="hidden">
-      <div class="nav-bar">
-        <button class="back-btn" onclick="showLanding()">&#x2190; Back</button>
-        <span class="title">&#x1F6E1;&#xFE0F; Admin Dashboard</span>
-        <span class="badge" id="adminBadge">0 items</span>
+      <div class="back-btn-wrap">
+        <button class="back-btn" onclick="showLanding()">
+          <span>&#x2190;</span> Back
+        </button>
+      </div>
+      <h2 class="section-title">Admin Dashboard</h2>
+
+      <!-- Trip Budget -->
+      <div class="budget-card" id="adminBudgetCard">
+        <div class="budget-header">
+          <h3>&#x1F4B0; Trip Budget</h3>
+          <span class="budget-edit" id="budgetEditBtn" onclick="toggleBudgetEdit()">&#x270F; Edit</span>
+        </div>
+        <div id="budgetDisplayMode">
+          <div class="budget-bar">
+            <div class="budget-bar-fill" id="adminBudgetBar" style="width:0%"></div>
+          </div>
+          <div class="budget-stats">
+            <span class="budget-stat-item">
+              <span class="budget-stat-label">Budget</span>
+              <span class="budget-stat-value" id="adminBudgetTotal">&#x9F3;0</span>
+            </span>
+            <span class="budget-stat-item">
+              <span class="budget-stat-label">Spent</span>
+              <span class="budget-stat-value spent" id="adminBudgetSpent">&#x9F3;0</span>
+            </span>
+            <span class="budget-stat-item">
+              <span class="budget-stat-label">Remaining</span>
+              <span class="budget-stat-value remaining" id="adminBudgetRemaining">&#x9F3;0</span>
+            </span>
+          </div>
+        </div>
+        <div id="budgetEditMode" style="display:none">
+          <div class="budget-input-row">
+            <input type="number" id="budgetInput" placeholder="Enter trip budget (&#x9F3;)" min="0" step="0.01">
+            <button class="btn btn-primary" onclick="saveBudget()">Save</button>
+            <button class="btn btn-outline" onclick="cancelBudgetEdit()">Cancel</button>
+          </div>
+        </div>
       </div>
 
       <div class="total-card">
         <div class="total-label">Total Spent</div>
-        <div class="total-amount" id="adminTotal"><span class="currency">$</span>0</div>
+        <div class="total-amount">
+          <span class="currency">&#x9F3;</span><span id="adminTotalSpent">0</span>
+        </div>
         <div class="person-strip" id="adminPersonStrip"></div>
       </div>
 
-      <div class="admin-form">
-        <h2 id="adminFormTitle">&#x270D;&#xFE0F; Add Expense</h2>
+      <div class="total-card savings">
+        <div class="total-label">Total Savings</div>
+        <div class="total-amount">
+          <span class="currency">&#x9F3;</span><span id="adminTotalSaved">0</span>
+        </div>
+        <div class="person-strip" id="adminSavingsStrip"></div>
+      </div>
+
+      <!-- Add Expense -->
+      <div class="form-card">
+        <h2 class="form-title" id="adminFormTitle">
+          <span>&#x2795;</span> Add Expense
+        </h2>
         <form id="adminExpenseForm" autocomplete="off">
-          <div class="form-row">
+          <div class="form-grid">
             <div class="form-group">
               <label>Description</label>
               <input type="text" id="inputName" placeholder="e.g. Hotel" required>
             </div>
             <div class="form-group">
-              <label>Amount ($)</label>
+              <label>Amount (&#x9F3;)</label>
               <input type="number" id="inputAmount" placeholder="0.00" min="0" step="0.01" required>
             </div>
           </div>
-          <div class="form-row three">
+          <div class="form-grid three-col">
             <div class="form-group">
               <label>Paid By</label>
               <select id="inputPayer"></select>
@@ -474,67 +1101,102 @@
               <select id="inputAssigned"></select>
             </div>
             <div class="form-group">
-              <label>Category</label>
-              <input type="text" id="inputCategory" placeholder="e.g. Food" value="General">
+              <label>Type</label>
+              <select id="inputType">
+                <option value="spent">Spent</option>
+                <option value="saved">Savings</option>
+              </select>
             </div>
           </div>
-          <div class="form-row" style="grid-template-columns:1fr;">
-            <div class="form-group">
+          <div class="form-grid">
+            <div class="form-group" style="grid-column: span 2;">
               <label>Date</label>
               <input type="date" id="inputDate">
             </div>
           </div>
-          <div style="display:flex; gap:8px; margin-top:4px;">
-            <button type="submit" class="btn btn-primary" id="adminSubmitBtn">&#x2795; Add Expense</button>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="adminSubmitBtn">&#x2795; Add</button>
             <button type="button" class="btn btn-outline" id="cancelEditBtn" style="display:none">Cancel</button>
           </div>
         </form>
       </div>
 
+      <!-- Traveler Management -->
       <div class="traveler-mgmt">
-        <h2>&#x1F465; Manage Travelers</h2>
-        <div class="add-row">
+        <h3>&#x1F465; Manage Travelers</h3>
+        <div class="add-traveler-row">
           <input type="text" id="travelerNameInput" placeholder="New traveler name">
           <button class="btn btn-primary" onclick="addTraveler()">&#x2795; Add</button>
         </div>
-        <div class="traveler-list" id="travelerListAdmin"></div>
+        <div class="traveler-chips" id="travelerListAdmin"></div>
       </div>
 
+      <!-- All Transactions -->
       <div class="expenses-header">
-        <h2>&#x1F4CB; All Expenses</h2>
-        <span class="count" id="adminCount">0</span>
+        <h3>&#x1F4CB; All Transactions</h3>
+        <span class="expense-count" id="adminCount">0</span>
+      </div>
+      <div class="filter-bar" id="adminFilterBar">
+        <span class="filter-label">Assigned:</span>
+        <select id="adminFilterAssigned">
+          <option value="all">All</option>
+        </select>
+        <span class="filter-label">Paid By:</span>
+        <select id="adminFilterPayer">
+          <option value="all">All</option>
+        </select>
+        <span class="filter-label">Type:</span>
+        <select id="adminFilterType">
+          <option value="all">All</option>
+          <option value="spent">Spent</option>
+          <option value="saved">Savings</option>
+        </select>
+        <span class="filter-label">Sort:</span>
+        <select id="adminFilterSort">
+          <option value="date-desc">Newest</option>
+          <option value="date-asc">Oldest</option>
+          <option value="amount-desc">Amount &#x2191;</option>
+          <option value="amount-asc">Amount &#x2193;</option>
+        </select>
       </div>
       <div id="adminList"></div>
     </div>
-  </div>
+  </main>
 
-  <!-- ===== PASSWORD MODAL ===== -->
+  <!-- Password Modal -->
   <div class="modal-overlay" id="passwordModal">
     <div class="modal-box">
       <h2>&#x1F512; Admin Access</h2>
       <p>Enter the admin password</p>
       <input type="password" id="passwordInput" placeholder="Enter password" autocomplete="off">
-      <div class="error" id="passwordError">Incorrect password</div>
-      <button class="btn btn-primary" id="passwordSubmit">Unlock</button>
+      <div class="modal-error" id="passwordError">Incorrect password</div>
+      <button class="btn btn-primary" id="passwordSubmit" style="width:100%">Unlock</button>
     </div>
   </div>
 
   <script>
-    // ===== Supabase config =====
+    const CURRENCY = '&#x9F3;';
+
     const SUPABASE_URL = 'https://kolmlzjkyzlibcfyhayw.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtvbG1sempreXpsaWJjZnloYXl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMjg3MTksImV4cCI6MjA5NDYwNDcxOX0.MQm4TajoagyIuSxXGYdAL_3f9jrRBWYxSYtVwPcyXhk';
     const SUPABASE_REST = SUPABASE_URL + '/rest/v1';
 
-    const TRAVELER_COLORS = ['#2ecc71','#1abc9c','#f39c12','#e74c3c','#3498db','#9b59b6','#1dd1a1','#f368e0','#ff9f43','#0abde3','#10ac84','#ee5a24'];
+    const TRAVELER_COLORS = ['#2d5a3d','#8b6f4e','#c47d4e','#3498db','#9b59b6','#e74c3c','#1abc9c','#f39c12'];
     const ADMIN_PASSWORD = 'shagor bagan';
 
     let travelers = [];
     let travelerColors = [];
-
     let expenses = [];
     let editingId = null;
 
-    // DOM
+    // Budget
+    let tripBudget = 0;
+    const BUDGET_KEY = 'tripBudget';
+
+    // Filter / sort state
+    let adminFilters = { assigned: 'all', payer: 'all', type: 'all', sort: 'date-desc' };
+    let travelerFilters = { type: 'all', sort: 'date-desc' };
+
     const $ = id => document.getElementById(id);
     const pageLanding = $('pageLanding');
     const pageTravelerSelect = $('pageTravelerSelect');
@@ -542,11 +1204,14 @@
     const pageAdmin = $('pageAdmin');
     const travelerGrid = $('travelerGrid');
     const travelerDashName = $('travelerDashName');
-    const travelerTotal = $('travelerTotal');
+    const travelerSpent = $('travelerSpent');
+    const travelerSaved = $('travelerSaved');
     const travelerCount = $('travelerCount');
     const travelerList = $('travelerList');
-    const adminTotal = $('adminTotal');
+    const adminTotalSpent = $('adminTotalSpent');
+    const adminTotalSaved = $('adminTotalSaved');
     const adminPersonStrip = $('adminPersonStrip');
+    const adminSavingsStrip = $('adminSavingsStrip');
     const adminCount = $('adminCount');
     const adminBadge = $('adminBadge');
     const adminList = $('adminList');
@@ -557,7 +1222,7 @@
     const inputAmount = $('inputAmount');
     const inputPayer = $('inputPayer');
     const inputAssigned = $('inputAssigned');
-    const inputCategory = $('inputCategory');
+    const inputType = $('inputType');
     const inputDate = $('inputDate');
     const cancelEditBtn = $('cancelEditBtn');
     const passwordModal = $('passwordModal');
@@ -565,7 +1230,6 @@
     const passwordError = $('passwordError');
     const passwordSubmit = $('passwordSubmit');
 
-    // === Supabase REST helpers (no library needed) ===
     const SB_HEADERS = {
       'apikey': SUPABASE_ANON_KEY,
       'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
@@ -582,16 +1246,11 @@
       try { return JSON.parse(text); } catch { return null; }
     }
 
-    function isLive() {
-      return true; // always use Supabase now
-    }
-
-    // === DATA ===
     async function loadData() {
       try {
         expenses = await sbFetch('/expenses?select=*&order=date.desc');
       } catch (e) {
-        console.error('Supabase load failed, using localStorage fallback:', e);
+        console.error('Supabase load failed:', e);
         try {
           const raw = localStorage.getItem('travelTrackerData');
           expenses = raw ? JSON.parse(raw) : [];
@@ -604,7 +1263,6 @@
       localStorage.setItem('travelTrackerData', JSON.stringify(expenses));
     }
 
-    // === TRAVELERS ===
     async function loadTravelers() {
       try {
         const data = await sbFetch('/travelers?select=*&order=created_at');
@@ -668,27 +1326,104 @@
       const container = document.getElementById('travelerListAdmin');
       container.innerHTML = travelers.map((name, i) => {
         const color = travelerColors[i] || '#888';
-        return `<span class="chip"><span class="dot" style="background:${color}"></span>${esc(name)}<span class="del" onclick="deleteTraveler('${name}')">&#x2716;</span></span>`;
+        return `<span class="traveler-chip">
+          <span class="dot" style="background:${color}"></span>
+          ${esc(name)}
+          <span class="delete" onclick="deleteTraveler('${name}')">&#x2716;</span>
+        </span>`;
       }).join('');
     }
 
-    // === LOADING SPINNER ===
-    function showLoading(container) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="icon" style="animation: spin 1s linear infinite">&#x1F504;</div>
-          <p>Loading...</p>
-        </div>
-      `;
+    // Budget functions
+    function loadBudget() {
+      try {
+        const raw = localStorage.getItem(BUDGET_KEY);
+        tripBudget = raw ? parseFloat(raw) : 0;
+      } catch { tripBudget = 0; }
     }
-    function injectSpinnerStyle() {
-      const style = document.createElement('style');
-      style.textContent = `@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`;
-      document.head.appendChild(style);
-    }
-    injectSpinnerStyle();
 
-    // === STATE PERSISTENCE (remembers page across refresh) ===
+    function saveBudgetValue(val) {
+      tripBudget = parseFloat(val) || 0;
+      localStorage.setItem(BUDGET_KEY, tripBudget.toString());
+      cancelBudgetEdit();
+      renderAll();
+    }
+
+    function toggleBudgetEdit() {
+      const display = $('budgetDisplayMode');
+      const edit = $('budgetEditMode');
+      display.style.display = 'none';
+      edit.style.display = 'block';
+      $('budgetInput').value = tripBudget > 0 ? tripBudget : '';
+      $('budgetInput').focus();
+    }
+
+    function cancelBudgetEdit() {
+      $('budgetDisplayMode').style.display = 'block';
+      $('budgetEditMode').style.display = 'none';
+    }
+
+    function saveBudget() {
+      const val = $('budgetInput').value;
+      saveBudgetValue(val);
+    }
+
+    function renderBudget(isAdmin) {
+      const totalSpent = expenses.filter(e => e.type !== 'saved').reduce((s, e) => s + e.amount, 0);
+      const savings = expenses.filter(e => e.type === 'saved').reduce((s, e) => s + e.amount, 0);
+      const effectiveSpent = Math.max(0, totalSpent - savings);
+      const remaining = tripBudget > 0 ? (tripBudget - effectiveSpent) : 0;
+      const pct = tripBudget > 0 ? Math.min(100, (effectiveSpent / tripBudget) * 100) : 0;
+
+      const budgetTotalEl = isAdmin ? $('adminBudgetTotal') : $('travelerBudgetTotal');
+      const budgetSpentEl = isAdmin ? $('adminBudgetSpent') : $('travelerBudgetSpent');
+      const budgetRemainingEl = isAdmin ? $('adminBudgetRemaining') : $('travelerBudgetRemaining');
+      const budgetBarEl = isAdmin ? $('adminBudgetBar') : $('travelerBudgetBar');
+      const budgetCardEl = isAdmin ? $('adminBudgetCard') : $('travelerBudgetCard');
+
+      if (!budgetTotalEl) return;
+
+      if (tripBudget <= 0) {
+        if (isAdmin) {
+          budgetTotalEl.innerHTML = CURRENCY + '0';
+          budgetSpentEl.innerHTML = CURRENCY + '0';
+          budgetRemainingEl.innerHTML = CURRENCY + '0';
+          budgetBarEl.style.width = '0%';
+          budgetBarEl.className = 'budget-bar-fill';
+          budgetCardEl.className = 'budget-card';
+        } else {
+          $('travelerBudgetCard').classList.add('hidden');
+        }
+        return;
+      } else {
+        if (isAdmin) {
+          budgetCardEl.className = 'budget-card';
+        } else {
+          $('travelerBudgetCard').classList.remove('hidden');
+        }
+      }
+
+      budgetTotalEl.innerHTML = CURRENCY + tripBudget.toFixed(2);
+      budgetSpentEl.innerHTML = CURRENCY + effectiveSpent.toFixed(2);
+
+      if (remaining >= 0) {
+        budgetRemainingEl.innerHTML = CURRENCY + remaining.toFixed(2);
+        budgetRemainingEl.className = 'budget-stat-value remaining';
+      } else {
+        budgetRemainingEl.innerHTML = CURRENCY + Math.abs(remaining).toFixed(2) + ' over';
+        budgetRemainingEl.className = 'budget-stat-value over-budget';
+      }
+
+      budgetBarEl.style.width = pct.toFixed(1) + '%';
+      if (pct >= 100) {
+        budgetBarEl.className = 'budget-bar-fill over';
+      } else if (pct >= 80) {
+        budgetBarEl.className = 'budget-bar-fill warning';
+      } else {
+        budgetBarEl.className = 'budget-bar-fill';
+      }
+    }
+
     function saveState(state) {
       localStorage.setItem('travelTrackerState', JSON.stringify(state));
     }
@@ -702,7 +1437,6 @@
       localStorage.removeItem('travelTrackerState');
     }
 
-    // === NAVIGATION ===
     function hideAll() {
       [pageLanding, pageTravelerSelect, pageTravelerDash, pageAdmin].forEach(p => p.classList.add('hidden'));
     }
@@ -732,6 +1466,7 @@
       saveState({ page: 'admin', adminUnlocked: true });
       await loadTravelers();
       await loadData();
+      loadBudget();
       renderAdmin();
       renderTravelerAdminList();
     }
@@ -742,7 +1477,6 @@
       passwordInput.focus();
     }
 
-    // === PASSWORD ===
     async function unlockAdmin() {
       if (passwordInput.value === ADMIN_PASSWORD) {
         passwordModal.classList.remove('open');
@@ -757,115 +1491,199 @@
     passwordInput.addEventListener('keydown', e => { if (e.key === 'Enter') unlockAdmin(); });
     passwordModal.addEventListener('click', e => { if (e.target === passwordModal) passwordModal.classList.remove('open'); });
 
-    // === RENDER: Traveler Grid ===
     function renderTravelerGrid() {
       const byPerson = {};
+      const byPersonSaved = {};
       expenses.forEach(e => {
-        byPerson[e.assigned] = (byPerson[e.assigned] || 0) + e.amount;
+        if (e.type === 'saved') {
+          byPersonSaved[e.assigned] = (byPersonSaved[e.assigned] || 0) + e.amount;
+        } else {
+          byPerson[e.assigned] = (byPerson[e.assigned] || 0) + e.amount;
+        }
       });
       travelerGrid.innerHTML = travelers.map((name, i) => {
-        const total = byPerson[name] || 0;
+        const spent = byPerson[name] || 0;
+        const saved = byPersonSaved[name] || 0;
         const bg = travelerColors[i] || '#888';
         return `
-          <div class="traveler-card" style="animation-delay:${i * 0.08}s" onclick="showTravelerDash('${name}')">
-            <div class="avatar" style="background:linear-gradient(135deg, var(--surface2), ${bg})">${name[0]}</div>
-            <div class="name">${name}</div>
-            <div class="cost">${total > 0 ? '$' + total.toFixed(2) : 'No expenses'}</div>
+          <div class="traveler-card" onclick="showTravelerDash('${name}')">
+            <div class="traveler-avatar" style="background: linear-gradient(135deg, ${bg}, ${adjustColor(bg,-20)})">${name[0]}</div>
+            <div class="traveler-name">${name}</div>
+            <div class="traveler-stats">
+              <span class="spent">Spent: ${CURRENCY}${spent.toFixed(2)}</span>
+              <span class="saved">Saved: ${CURRENCY}${saved.toFixed(2)}</span>
+            </div>
           </div>
         `;
       }).join('');
     }
 
-    // === RENDER: Traveler Dashboard ===
-    function renderTravelerDash(name) {
-      const personExpenses = expenses.filter(e => e.assigned === name);
-      const total = personExpenses.reduce((s, e) => s + e.amount, 0);
-      travelerTotal.innerHTML = `<span class="currency">$</span>${total.toFixed(2)}`;
-      travelerCount.textContent = `${personExpenses.length} item${personExpenses.length !== 1 ? 's' : ''}`;
+    function adjustColor(hex, amount) {
+      const num = parseInt(hex.replace('#',''), 16);
+      const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+      const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+      const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+      return '#' + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+    }
 
-      if (personExpenses.length === 0) {
+    function renderTravelerDash(name) {
+      // Read filter values from DOM
+      travelerFilters.type = $('travelerFilterType') ? $('travelerFilterType').value : 'all';
+      travelerFilters.sort = $('travelerFilterSort') ? $('travelerFilterSort').value : 'date-desc';
+
+      // Render budget
+      renderBudget(false);
+
+      const personExpenses = expenses.filter(e => e.assigned === name);
+      
+      // Apply filters
+      let filtered = [...personExpenses];
+      if (travelerFilters.type !== 'all') {
+        filtered = filtered.filter(e => e.type === travelerFilters.type);
+      }
+
+      // Sort
+      const [sortField, sortDir] = travelerFilters.sort.split('-');
+      filtered.sort((a, b) => {
+        let cmp;
+        if (sortField === 'date') {
+          cmp = new Date(a.date) - new Date(b.date);
+        } else {
+          cmp = a.amount - b.amount;
+        }
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+
+      const spent = personExpenses.filter(e => e.type !== 'saved').reduce((s, e) => s + e.amount, 0);
+      const saved = personExpenses.filter(e => e.type === 'saved').reduce((s, e) => s + e.amount, 0);
+      
+      travelerSpent.textContent = spent.toFixed(2);
+      travelerSaved.textContent = saved.toFixed(2);
+      travelerCount.textContent = `${filtered.length} item${filtered.length !== 1 ? 's' : ''}`;
+
+      if (filtered.length === 0) {
         travelerList.innerHTML = `
           <div class="empty-state">
-            <div class="icon">&#x1F30D;</div>
-            <p>No expenses assigned to you yet!</p>
+            <div class="empty-icon">&#x1F30D;</div>
+            <p>No transactions yet!</p>
           </div>`;
         return;
       }
 
-      const sorted = [...personExpenses].sort((a, b) => new Date(b.date) - new Date(a.date));
-      travelerList.innerHTML = sorted.map((e, idx) => {
+      travelerList.innerHTML = filtered.map((e) => {
         const dateStr = formatDate(e.date);
-        const cat = e.category || 'General';
-        const emoji = categoryEmoji(cat);
+        const isSaved = e.type === 'saved';
+        const emoji = isSaved ? '&#x1F4B0;' : categoryEmoji(e.category || 'General');
         return `
-          <div class="expense-card" style="animation-delay:${idx * 0.06}s">
-            <div class="emoji">${emoji}</div>
-            <div class="info">
-              <div class="name">${esc(e.name)}</div>
-              <div class="meta">
-                <span>&#x1F464; paid by ${esc(e.payer)}</span>
+          <div class="expense-item">
+            <div class="expense-emoji">${emoji}</div>
+            <div class="expense-info">
+              <div class="expense-name">${esc(e.name)}</div>
+              <div class="expense-meta">
+                <span>&#x1F464; ${isSaved ? 'Saved by' : 'paid by'} ${esc(e.payer)}</span>
                 <span>&#x1F4C5; ${dateStr}</span>
-                <span>&#x1F3F7; ${esc(cat)}</span>
               </div>
             </div>
-            <div class="amount green">$${e.amount.toFixed(2)}</div>
+            <div class="expense-amount ${isSaved ? 'saved' : ''}">${isSaved ? '+' : '-'}${CURRENCY}${e.amount.toFixed(2)}</div>
           </div>
         `;
       }).join('');
     }
 
-    // === RENDER: Admin Dashboard ===
     function renderAdmin() {
       populateSelects();
-      const total = expenses.reduce((s, e) => s + e.amount, 0);
-      adminTotal.innerHTML = `<span class="currency">$</span>${total.toFixed(2)}`;
+      populateFilterSelects();
 
-      const byPerson = {};
+      // Read filter values from DOM
+      adminFilters.assigned = $('adminFilterAssigned') ? $('adminFilterAssigned').value : 'all';
+      adminFilters.payer = $('adminFilterPayer') ? $('adminFilterPayer').value : 'all';
+      adminFilters.type = $('adminFilterType') ? $('adminFilterType').value : 'all';
+      adminFilters.sort = $('adminFilterSort') ? $('adminFilterSort').value : 'date-desc';
+
+      // Render budget
+      renderBudget(true);
+      
+      const totalSpent = expenses.filter(e => e.type !== 'saved').reduce((s, e) => s + e.amount, 0);
+      const totalSaved = expenses.filter(e => e.type === 'saved').reduce((s, e) => s + e.amount, 0);
+      
+      adminTotalSpent.textContent = totalSpent.toFixed(2);
+      adminTotalSaved.textContent = totalSaved.toFixed(2);
+
+      const byPersonSpent = {};
+      const byPersonSaved = {};
       expenses.forEach(e => {
-        byPerson[e.assigned] = (byPerson[e.assigned] || 0) + e.amount;
+        if (e.type === 'saved') {
+          byPersonSaved[e.assigned] = (byPersonSaved[e.assigned] || 0) + e.amount;
+        } else {
+          byPersonSpent[e.assigned] = (byPersonSpent[e.assigned] || 0) + e.amount;
+        }
       });
-      adminPersonStrip.innerHTML = travelers.map((name, i) => {
-        const amt = byPerson[name] || 0;
-        const color = travelerColors[i] || '#888';
-        return `<span style="border-color:${color}">${name}: $${amt.toFixed(2)}</span>`;
+      
+      adminPersonStrip.innerHTML = travelers.map((name) => {
+        const amt = byPersonSpent[name] || 0;
+        return `<span>${name}: ${CURRENCY}${amt.toFixed(2)}</span>`;
+      }).join('');
+      
+      adminSavingsStrip.innerHTML = travelers.map((name) => {
+        const amt = byPersonSaved[name] || 0;
+        return `<span class="highlight">${name}: ${CURRENCY}${amt.toFixed(2)}</span>`;
       }).join('');
 
-      const sorted = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
-      adminCount.textContent = `${sorted.length} item${sorted.length !== 1 ? 's' : ''}`;
-      adminBadge.textContent = `${sorted.length} item${sorted.length !== 1 ? 's' : ''}`;
+      // Filter expenses
+      let filtered = [...expenses];
+      if (adminFilters.assigned !== 'all') {
+        filtered = filtered.filter(e => e.assigned === adminFilters.assigned);
+      }
+      if (adminFilters.payer !== 'all') {
+        filtered = filtered.filter(e => e.payer === adminFilters.payer);
+      }
+      if (adminFilters.type !== 'all') {
+        filtered = filtered.filter(e => e.type === adminFilters.type);
+      }
 
-      if (sorted.length === 0) {
+      // Sort
+      const [sortField, sortDir] = adminFilters.sort.split('-');
+      filtered.sort((a, b) => {
+        let cmp;
+        if (sortField === 'date') {
+          cmp = new Date(a.date) - new Date(b.date);
+        } else {
+          cmp = a.amount - b.amount;
+        }
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+
+      adminCount.textContent = `${filtered.length} item${filtered.length !== 1 ? 's' : ''}`;
+
+      if (filtered.length === 0) {
         adminList.innerHTML = `
           <div class="empty-state">
-            <div class="icon">&#x1F4CB;</div>
-            <p>No expenses yet. Add one above!</p>
+            <div class="empty-icon">&#x1F4CB;</div>
+            <p>No transactions yet. Add one above!</p>
           </div>`;
         return;
       }
 
-      adminList.innerHTML = sorted.map((e, idx) => {
+      adminList.innerHTML = filtered.map((e) => {
         const dateStr = formatDate(e.date);
-        const cat = e.category || 'General';
-        const emoji = categoryEmoji(cat);
-        const assignedIdx = travelers.indexOf(e.assigned);
-        const barColor = travelerColors[assignedIdx >= 0 ? assignedIdx : 0] || '#888';
+        const isSaved = e.type === 'saved';
+        const emoji = isSaved ? '&#x1F4B0;' : categoryEmoji(e.category || 'General');
         return `
-          <div class="expense-card" style="animation-delay:${idx * 0.04}s;border-color:${barColor}" data-id="${e.id}">
-            <div class="color-bar" style="background:${barColor}"></div>
-            <div class="emoji">${emoji}</div>
-            <div class="info">
-              <div class="name">${esc(e.name)}</div>
-              <div class="meta">
-                <span>&#x1F464; paid: ${esc(e.payer)}</span>
-                <span>&#x1F91D; owed: ${esc(e.assigned)}</span>
+          <div class="expense-item" style="border-left: 3px solid ${isSaved ? '#d4a017' : (travelerColors[travelers.indexOf(e.assigned)] || '#888')}" data-id="${e.id}">
+            <div class="expense-emoji">${emoji}</div>
+            <div class="expense-info">
+              <div class="expense-name">${esc(e.name)}</div>
+              <div class="expense-meta">
+                <span>&#x1F464; ${isSaved ? 'Saved by' : 'paid by'}: ${esc(e.payer)}</span>
+                <span>&#x1F91D; Owed: ${esc(e.assigned)}</span>
                 <span>&#x1F4C5; ${dateStr}</span>
-                <span>&#x1F3F7; ${esc(cat)}</span>
+                <span>${isSaved ? '&#x1F4B0; Savings' : '&#x1F4B5; Spent'}</span>
               </div>
             </div>
-            <div class="amount green">$${e.amount.toFixed(2)}</div>
-            <div class="actions">
-              <button class="btn btn-sm btn-outline" onclick="editExpense('${e.id}')">&#x270F;&#xFE0F;</button>
-              <button class="btn btn-sm btn-danger" onclick="deleteExpense('${e.id}')">&#x1F5D1;&#xFE0F;</button>
+            <div class="expense-amount ${isSaved ? 'saved' : ''}">${isSaved ? '+' : '-'}${CURRENCY}${e.amount.toFixed(2)}</div>
+            <div class="expense-actions">
+              <button class="btn btn-sm btn-outline" onclick="editExpense('${e.id}')">&#x270F;</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteExpense('${e.id}')">&#x1F5D1;</button>
             </div>
           </div>
         `;
@@ -882,8 +1700,7 @@
       if (!pageAdmin.classList.contains('hidden')) renderAdmin();
     }
 
-    // === CRUD (Supabase REST API) ===
-    async function addExpense(name, amount, payer, assigned, category, date) {
+    async function addExpense(name, amount, payer, assigned, type, date) {
       adminSubmitBtn.disabled = true;
       adminSubmitBtn.textContent = 'Saving...';
       try {
@@ -892,7 +1709,7 @@
           amount: parseFloat(amount),
           payer,
           assigned,
-          category: category.trim() || 'General',
+          type: type || 'spent',
           date: date || new Date().toISOString().slice(0, 10),
         };
         const data = await sbFetch('/expenses?select=*', {
@@ -910,7 +1727,7 @@
       renderAdmin();
     }
 
-    async function updateExpense(id, name, amount, payer, assigned, category, date) {
+    async function updateExpense(id, name, amount, payer, assigned, type, date) {
       adminSubmitBtn.disabled = true;
       adminSubmitBtn.textContent = 'Saving...';
       try {
@@ -919,7 +1736,7 @@
           amount: parseFloat(amount),
           payer,
           assigned,
-          category: category.trim() || 'General',
+          type: type || 'spent',
         };
         if (date) body.date = date;
         await sbFetch('/expenses?id=eq.' + id, {
@@ -940,7 +1757,7 @@
     }
 
     async function deleteExpense(id) {
-      if (!confirm('Delete this expense?')) return;
+      if (!confirm('Delete this transaction?')) return;
       try {
         await sbFetch('/expenses?id=eq.' + id, { method: 'DELETE' });
       } catch (e) {
@@ -960,9 +1777,9 @@
       inputAmount.value = e.amount;
       inputPayer.value = e.payer;
       inputAssigned.value = e.assigned;
-      inputCategory.value = e.category || 'General';
+      inputType.value = e.type || 'spent';
       inputDate.value = e.date || '';
-      adminFormTitle.innerHTML = '&#x270F;&#xFE0F; Edit Expense';
+      adminFormTitle.innerHTML = '<span>&#x270F;</span> Edit Transaction';
       adminSubmitBtn.textContent = '&#x1F504; Update';
       cancelEditBtn.style.display = 'inline-block';
       adminForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -972,35 +1789,47 @@
       editingId = null;
       inputName.value = '';
       inputAmount.value = '';
-      inputCategory.value = 'General';
+      inputType.value = 'spent';
       inputPayer.value = travelers[0] || '';
       inputAssigned.value = travelers[0] || '';
       inputDate.value = new Date().toISOString().slice(0, 10);
-      adminFormTitle.innerHTML = '&#x270D;&#xFE0F; Add Expense';
-      adminSubmitBtn.textContent = '&#x2795; Add Expense';
+      adminFormTitle.innerHTML = '<span>&#x2795;</span> Add Expense';
+      adminSubmitBtn.textContent = '&#x2795; Add';
       adminSubmitBtn.disabled = false;
       cancelEditBtn.style.display = 'none';
     }
 
-    // === UTILS ===
     function populateSelects() {
       const payerOpts = travelers.map(n => `<option value="${n}">${n}</option>`).join('');
       inputPayer.innerHTML = payerOpts;
       inputAssigned.innerHTML = payerOpts;
     }
 
+    function populateFilterSelects() {
+      const assignEl = $('adminFilterAssigned');
+      const payerEl = $('adminFilterPayer');
+      if (!assignEl || !payerEl) return;
+      const currentAssign = assignEl.value;
+      const currentPayer = payerEl.value;
+      const opts = '<option value="all">All</option>' + travelers.map(n => `<option value="${n}">${n}</option>`).join('');
+      assignEl.innerHTML = opts;
+      payerEl.innerHTML = opts;
+      assignEl.value = currentAssign && travelers.includes(currentAssign) ? currentAssign : 'all';
+      payerEl.value = currentPayer && travelers.includes(currentPayer) ? currentPayer : 'all';
+    }
+
     function categoryEmoji(cat) {
       const map = {
         'food':'&#x1F372;','meal':'&#x1F372;','eat':'&#x1F372;',
         'hotel':'&#x1F3E8;','stay':'&#x1F3E8;','lodging':'&#x1F3E8;',
-        'transport':'&#x1F68C;','uber':'&#x1F696;','taxi':'&#x1F696;','car':'&#x1F697;','flight':'&#x2708;&#xFE0F;',
+        'transport':'&#x1F68C;','uber':'&#x1F696;','taxi':'&#x1F696;','car':'&#x1F697;','flight':'&#x2708;',
         'gas':'&#x26FD;','fuel':'&#x26FD;',
-        'activity':'&#x1F3AA;','fun':'&#x1F389;','ticket':'&#x1F39F;&#xFE0F;',
-        'shop':'&#x1F6CD;&#xFE0F;','souvenir':'&#x1F6CD;&#xFE0F;',
+        'activity':'&#x1F3AA;','fun':'&#x1F389;','ticket':'&#x1F39F;',
+        'shop':'&#x1F6CD;','souvenir':'&#x1F6CD;',
         'drink':'&#x1F37A;','beer':'&#x1F37A;','bar':'&#x1F37A;',
         'coffee':'&#x2615;','general':'&#x1F4B5;',
       };
-      const lower = cat.toLowerCase();
+      const lower = (cat || '').toLowerCase();
       for (const [k, emoji] of Object.entries(map)) { if (lower.includes(k)) return emoji; }
       return '&#x1F4B5;';
     }
@@ -1017,36 +1846,47 @@
       return d.innerHTML;
     }
 
-    // === FORM SUBMIT ===
     adminForm.addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const name = inputName.value.trim();
       const amount = inputAmount.value;
       const payer = inputPayer.value;
       const assigned = inputAssigned.value;
-      const category = inputCategory.value.trim();
+      const type = inputType.value;
       const date = inputDate.value;
       if (!name || !amount) return;
 
       if (editingId) {
-        await updateExpense(editingId, name, amount, payer, assigned, category, date);
+        await updateExpense(editingId, name, amount, payer, assigned, type, date);
       } else {
-        await addExpense(name, amount, payer, assigned, category, date);
+        await addExpense(name, amount, payer, assigned, type, date);
       }
       resetForm();
     });
 
     cancelEditBtn.addEventListener('click', resetForm);
 
-    // auto-sync Assigned To when Paid By changes
+    // Budget Enter key
+    $('budgetInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveBudget(); });
+
+    // Filter event listeners
+    function attachFilterListeners() {
+      const ids = ['adminFilterAssigned','adminFilterPayer','adminFilterType','adminFilterSort','travelerFilterType','travelerFilterSort'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', () => renderAll());
+      });
+    }
+    attachFilterListeners();
+
     inputPayer.addEventListener('change', () => {
       if (!editingId) inputAssigned.value = inputPayer.value;
     });
 
-    // === INIT ===
     (async () => {
       await loadTravelers();
       await loadData();
+      loadBudget();
       populateSelects();
       inputDate.value = new Date().toISOString().slice(0, 10);
 
