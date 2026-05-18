@@ -1444,17 +1444,21 @@
       clearState();
       renderAll();
     }
-    function showTravelerSelect() {
+    async function showTravelerSelect() {
       hideAll();
       pageTravelerSelect.classList.remove('hidden');
       saveState({ page: 'travelerSelect' });
+      await loadTravelers();
+      await loadData();
       renderTravelerGrid();
     }
-    function showTravelerDash(name) {
+    async function showTravelerDash(name) {
       hideAll();
       pageTravelerDash.classList.remove('hidden');
       travelerDashName.textContent = name;
       saveState({ page: 'travelerDash', travelerName: name });
+      await loadTravelers();
+      await loadData();
       renderTravelerDash(name);
     }
     async function showAdmin() {
@@ -1693,7 +1697,7 @@
       if (!pageTravelerSelect.classList.contains('hidden')) renderTravelerGrid();
       if (!pageTravelerDash.classList.contains('hidden')) {
         const name = travelerDashName.textContent;
-        if (travelers.includes(name)) renderTravelerDash(name);
+        if (name) renderTravelerDash(name);
       }
       if (!pageAdmin.classList.contains('hidden')) renderAdmin();
     }
