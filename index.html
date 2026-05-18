@@ -1370,10 +1370,8 @@
 
     function renderBudget(isAdmin) {
       const totalSpent = expenses.filter(e => e.type !== 'saved').reduce((s, e) => s + e.amount, 0);
-      const savings = expenses.filter(e => e.type === 'saved').reduce((s, e) => s + e.amount, 0);
-      const effectiveSpent = Math.max(0, totalSpent - savings);
-      const remaining = tripBudget > 0 ? (tripBudget - effectiveSpent) : 0;
-      const pct = tripBudget > 0 ? Math.min(100, (effectiveSpent / tripBudget) * 100) : 0;
+      const remaining = tripBudget > 0 ? (tripBudget - totalSpent) : 0;
+      const pct = tripBudget > 0 ? Math.min(100, (totalSpent / tripBudget) * 100) : 0;
 
       const budgetTotalEl = isAdmin ? $('adminBudgetTotal') : $('travelerBudgetTotal');
       const budgetSpentEl = isAdmin ? $('adminBudgetSpent') : $('travelerBudgetSpent');
@@ -1404,7 +1402,7 @@
       }
 
       budgetTotalEl.innerHTML = CURRENCY + tripBudget.toFixed(2);
-      budgetSpentEl.innerHTML = CURRENCY + effectiveSpent.toFixed(2);
+      budgetSpentEl.innerHTML = CURRENCY + totalSpent.toFixed(2);
 
       if (remaining >= 0) {
         budgetRemainingEl.innerHTML = CURRENCY + remaining.toFixed(2);
